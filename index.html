@@ -483,47 +483,58 @@ function renderCombos(rows) {
     c.prodDetails[r.s].ventas += (r.vn || 0);
   });
   const arr = Object.entries(byCombo).map(([id, d]) => {
-    let sumAct = 0, sumAnt = 0;
+    let sumAct = 0, sumAnt = 0, ventasAntSum = 0;
     d.saps.forEach(sap => {
       sumAct += sapTotalInRange(sap, md, mh);
       sumAnt += sapTotalInRange(sap, mdYoY, mhYoY);
+      ventasAntSum += ventasSapInRange(sap, mdYoY, mhYoY);
     });
     return {
       id, uf: d.uf, ventas: d.ventas, mesesActivos: d.mesesActivos.size, nc: d.nc,
       modulos: [...d.modulos].join(", "), prods: [...d.prods].join(" · "),
-      linea: d.linea, ufAnt: sumAnt,
+      linea: d.linea, ufAnt: sumAnt, ventasAntSum,
       prodDetails: Object.values(d.prodDetails)
     };
   });
+  // % del Transfer relativo al universo de combos visibles
+  const totalUFcombos = arr.reduce((s, x) => s + x.uf, 0);
+  arr.forEach(c => { c.pctTransfer = totalUFcombos > 0 ? c.uf / totalUFcombos : 0; });
+
   sortArr(arr, S.sortCol || "uf", S.sortDir);
 
   S.lastView = {
     name: "combos",
-    header: ["ComboID","Productos","Linea","Cant_productos","UF_transfer","Ventas_totales","UF_periodo_anterior","Meses_vigencia","Modulos_usados"],
-    rows: arr.map(c => [c.id, c.prods, c.linea, c.nc, c.uf, c.ventas, c.ufAnt, c.mesesActivos, c.modulos])
+    header: ["ComboID","Productos","Linea","Cant_productos","Meses","UF_Transfer","Pct_del_Transfer","Ventas_Totales","Ventas_periodo_anterior","UF_periodo_anterior","Modulos_usados"],
+    rows: arr.map(c => [c.id, c.prods, c.linea, c.nc, c.mesesActivos, c.uf, (c.pctTransfer*100).toFixed(2)+"%", c.ventas, c.ventasAntSum, c.ufAnt, c.modulos])
   };
 
   document.getElementById("thead").innerHTML = `<tr>
     <th class="sortable" data-col="id">ComboID</th>
-    <th>Productos</th>
+    <th>Productos del módulo</th>
     <th class="sortable" data-col="linea">Línea</th>
     <th class="sortable" data-col="nc">#P</th>
-    <th class="sortable" data-col="uf">UF Transfer</th>
-    <th class="sortable" data-col="ventas">Ventas Totales</th>
-    <th class="sortable" data-col="ufAnt">UF período anterior</th>
     <th class="sortable" data-col="mesesActivos">Meses</th>
+    <th class="sortable" data-col="uf">UF Transfer</th>
+    <th class="sortable" data-col="pctTransfer">% del Transfer</th>
+    <th class="sortable" data-col="ventas">Ventas Totales</th>
+    <th class="sortable" data-col="ventasAntSum">Ventas período anterior</th>
+    <th class="sortable" data-col="ufAnt">UF período anterior</th>
   </tr>`;
-  document.getElementById("tbody").innerHTML = arr.slice(0, 200).map(c =>
-    `<tr class="combo-row ${c.id===S.selected?'selected':''}" data-combo="${c.id.replace(/"/g,'&quot;')}">
+  document.getElementById("tbody").innerHTML = arr.slice(0, 200).map(c => {
+    const prodsHtml = c.prods.split(" · ").map(p => `<div>${p}</div>`).join("");
+    return `<tr class="combo-row ${c.id===S.selected?'selected':''}" data-combo="${c.id.replace(/"/g,'&quot;')}">
       <td style="font-family:monospace;font-size:11px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.id}">${c.id}</td>
-      <td>${c.prods}</td>
+      <td style="font-size:10.5px;line-height:1.35;color:#555;max-width:240px">${prodsHtml}</td>
       <td><span class="tag">${c.linea}</span></td>
       <td>${c.nc}</td>
-      <td>${fmt(c.uf)}</td>
-      <td>${c.ventas > 0 ? fmt(c.ventas) : '<span class="muted">—</span>'}</td>
-      <td>${c.ufAnt > 0 ? fmt(c.ufAnt) : '<span class="muted">0</span>'}</td>
       <td>${c.mesesActivos}</td>
-    </tr>`).join("");
+      <td>${fmt(c.uf)}</td>
+      <td>${(c.pctTransfer*100).toFixed(1)}%</td>
+      <td>${c.ventas > 0 ? fmt(c.ventas) : '<span class="muted">—</span>'}</td>
+      <td>${c.ventasAntSum > 0 ? fmt(c.ventasAntSum) : '<span class="muted">0</span>'}</td>
+      <td>${c.ufAnt > 0 ? fmt(c.ufAnt) : '<span class="muted">0</span>'}</td>
+    </tr>`;
+  }).join("");
   document.querySelectorAll(".combo-row").forEach(tr => tr.addEventListener("click", () => {
     S.selected = tr.dataset.combo; renderCombos(rows); renderComboDetail(arr, S.selected);
   }));
