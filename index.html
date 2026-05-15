@@ -218,6 +218,37 @@ function ventasSapInRange(sap, mdFrom, mdTo) {
   return total;
 }
 
+// Actividad del módulo por mes (UF total + SAPs que estuvieron)
+const MOD_ACTIVITY = {};
+DATA.rows.forEach(r => {
+  if (r.mc === "SIN_MODULO" || !r.m) return;
+  const k = r.m;
+  if (!MOD_ACTIVITY[k]) MOD_ACTIVITY[k] = {};
+  if (!MOD_ACTIVITY[k][r.mes]) MOD_ACTIVITY[k][r.mes] = { uf: 0, saps: new Set() };
+  MOD_ACTIVITY[k][r.mes].uf += r.uf;
+  if (r.s) MOD_ACTIVITY[k][r.mes].saps.add(r.s);
+});
+function modUfInRange(modName, mdFrom, mdTo) {
+  const monthly = MOD_ACTIVITY[modName] || {};
+  let total = 0;
+  for (const m in monthly) { const mi = +m; if (mi >= mdFrom && mi <= mdTo) total += monthly[m].uf; }
+  return total;
+}
+function modVentasInRange(modName, mdFrom, mdTo) {
+  // Suma ventas de los SAPs que estuvieron en el módulo en ese rango
+  const monthly = MOD_ACTIVITY[modName] || {};
+  let total = 0;
+  for (const m in monthly) {
+    const mi = +m;
+    if (mi < mdFrom || mi > mdTo) continue;
+    monthly[m].saps.forEach(sap => {
+      const k = sap + '_' + mi;
+      if (VENTAS_SAP_MES[k]) total += VENTAS_SAP_MES[k];
+    });
+  }
+  return total;
+}
+
 const S = { tab: "efectividad", sortCol: null, sortDir: "desc", selected: null, lastView: { header: [], rows: [] } };
 
 function uniq(arr) { return [...new Set(arr)].filter(Boolean).sort(); }
@@ -313,15 +344,14 @@ function renderEfectividad(rows) {
   const arr = Object.values(byMod).map(mod => {
     const prodArr = Object.values(mod.products);
     let sumUp = 0, sumW = 0, nProdValid = 0, nProdPos = 0, ufTotal = 0, ventasTotal = 0;
-    let ufActualSum = 0, ufAntSum = 0, ventasAntSum = 0;
     const prodDetails = [];
+    // UF y Ventas del MISMO módulo en período anterior (comparación manzanas con manzanas)
+    const ufAntSum = modUfInRange(mod.m, mdYoY, mhYoY);
+    const ventasAntSum = modVentasInRange(mod.m, mdYoY, mhYoY);
     prodArr.forEach(p => {
       const ufActual = sapTotalInRange(p.sap, md, mh);
       const ufAnt = sapTotalInRange(p.sap, mdYoY, mhYoY);
       const ventasAnt = ventasSapInRange(p.sap, mdYoY, mhYoY);
-      ufActualSum += ufActual;
-      ufAntSum += ufAnt;
-      ventasAntSum += ventasAnt;
       let uplift = null;
       if (ufAnt >= minBase) {
         uplift = (ufActual - ufAnt) / ufAnt;
@@ -394,7 +424,7 @@ function renderEfectividad(rows) {
     <th class="sortable" data-col="semScore">Semáforo</th>
     <th class="sortable" data-col="m">Módulo</th>
     <th class="sortable" data-col="linea">Línea</th>
-    <th class="sortable" data-col="nc">#P</th>
+    <th class="sortable" data-col="nProd">#P</th>
     <th class="sortable" data-col="mesesActivos">Meses</th>
     <th>Productos del módulo</th>
     <th class="sortable" data-col="ufTotal">UF Transfer</th>
@@ -411,7 +441,7 @@ function renderEfectividad(rows) {
       <td><span class="semaforo ${clase}"></span></td>
       <td>${m.m}</td>
       <td><span class="tag">${m.linea}</span></td>
-      <td>${m.nc}</td>
+      <td>${m.nProd}</td>
       <td>${m.mesesActivos}</td>
       <td style="font-size:10.5px;line-height:1.35;color:#555;max-width:240px">${listaHtml}</td>
       <td>${fmt(m.ufTotal)}</td>
@@ -479,16 +509,16 @@ function renderCombos(rows) {
     c.prodDetails[r.s].ventas += (r.vn || 0);
   });
   const arr = Object.entries(byCombo).map(([id, d]) => {
-    let sumAct = 0, sumAnt = 0, ventasAntSum = 0;
-    d.saps.forEach(sap => {
-      sumAct += sapTotalInRange(sap, md, mh);
-      sumAnt += sapTotalInRange(sap, mdYoY, mhYoY);
-      ventasAntSum += ventasSapInRange(sap, mdYoY, mhYoY);
+    // UF y Ventas del MISMO combo (mismo set de módulos donde ocurrió) en período anterior
+    let ufAnt = 0, ventasAntSum = 0;
+    d.modulos.forEach(modName => {
+      ufAnt += modUfInRange(modName, mdYoY, mhYoY);
+      ventasAntSum += modVentasInRange(modName, mdYoY, mhYoY);
     });
     return {
       id, uf: d.uf, ventas: d.ventas, mesesActivos: d.mesesActivos.size, nc: d.nc,
       modulos: [...d.modulos].join(", "), prods: [...d.prods].join(" · "),
-      linea: d.linea, ufAnt: sumAnt, ventasAntSum,
+      linea: d.linea, ufAnt, ventasAntSum,
       prodDetails: Object.values(d.prodDetails)
     };
   });
