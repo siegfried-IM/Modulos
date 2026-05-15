@@ -25,8 +25,6 @@ main { padding: 16px 24px 40px; }
 .tab.active { background: white; color: #1a3a52; font-weight: 600; }
 .tab.primary { background: #c2dbf0; color: #1a3a52; font-weight: 600; }
 .tab.primary.active { background: white; }
-.tab.alerts { background: #ffe5e5; color: #7a1a1a; }
-.tab.alerts.active { background: white; color: #b3261e; }
 .panel { background: white; padding: 20px; border-radius: 0 8px 8px 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); min-height: 400px; }
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; }
 .kpi { background: #f8f9fb; padding: 10px 14px; border-radius: 6px; border-left: 3px solid #1a3a52; position: relative; }
@@ -45,8 +43,7 @@ th.sortable::after { content: " \2195"; color: #aaa; font-size: 10px; }
 th.sort-asc::after { content: " \25B2"; color: #1a3a52; }
 th.sort-desc::after { content: " \25BC"; color: #1a3a52; }
 td { padding: 7px 8px; border-bottom: 1px solid #eee; vertical-align: middle; }
-tr:hover td { background: #f8f9fb; }
-tr.riesgo td { background: #fff3f3; }
+tr:hover td { background: #f8f9fb; cursor: pointer; }
 tr.verde td { background: #f0fbf1; }
 tr.amarillo td { background: #fffce6; }
 tr.rojo td { background: #fff0f0; }
@@ -62,14 +59,12 @@ tr.rojo td { background: #fff0f0; }
 .neg { color: #b3261e; font-weight: 600; }
 .muted { color: #888; font-size: 12px; }
 .tag { display: inline-block; padding: 2px 8px; background: #e1e5eb; border-radius: 10px; font-size: 11px; margin-right: 3px; }
-.tag.riesgo { background: #ffe5e5; color: #b3261e; font-weight: 600; }
-#detailPanel { margin-top: 16px; display: none; background: #f8f9fb; padding: 16px; border-radius: 6px; }
+#detailPanel { margin-top: 16px; display: none; background: #f8f9fb; padding: 18px; border-radius: 6px; border-left: 4px solid #1a3a52; }
 #detailPanel.show { display: block; }
 .scroll-wrap { max-height: 620px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px; }
 .note { font-size: 12px; color: #666; margin: 8px 0; padding: 8px 12px; background: #fff9e6; border-left: 3px solid #f0b400; border-radius: 4px; }
-.note.alert { background: #fff0f0; border-left-color: #b3261e; color: #7a1a1a; }
 .note.info { background: #e8f3fb; border-left-color: #1a3a52; color: #1a3a52; }
-svg.spark { display: block; }
+svg.spark-big { display: block; }
 .metodologia { font-size: 12px; color: #333; background: #f8f9fb; padding: 14px 16px; border-radius: 6px; margin-bottom: 16px; }
 .metodologia h4 { margin: 0 0 6px; color: #1a3a52; font-size: 13px; }
 .metodologia ul { margin: 4px 0 0 18px; padding: 0; }
@@ -81,13 +76,22 @@ svg.spark { display: block; }
 .export-menu .item:hover { background: #f0f4f8; }
 .export-menu .item .desc { font-size: 11px; color: #888; display: block; margin-top: 2px; }
 .export-wrap { position: relative; }
+.detail-header { display: flex; gap: 24px; align-items: flex-start; margin-bottom: 14px; }
+.detail-header .info { flex: 1; }
+.detail-header .info h3 { margin: 0 0 6px; color: #1a3a52; font-size: 16px; }
+.detail-header .info .meta { font-size: 12px; color: #555; }
+.detail-header .chart-box { width: 280px; }
+.detail-header .chart-box .legend { font-size: 11px; color: #666; margin-top: 4px; }
+.shares-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.shares-list .chip { background: white; border: 1px solid #d0d4db; border-radius: 14px; padding: 3px 10px; font-size: 11px; color: #1a3a52; }
+.shares-list .chip strong { color: #b3261e; font-weight: 600; }
 </style>
 </head>
 <body>
 <header>
   <div class="brand">
     <h1>Dashboard Módulos Comercial</h1>
-    <div class="sub">Análisis de efectividad por combinación de productos · Datos feb 2023 - abr 2026</div>
+    <div class="sub">Análisis de efectividad por combinación de productos · Datos feb 2023 - may 2026</div>
   </div>
   <div class="actions">
     <div class="export-wrap">
@@ -99,7 +103,7 @@ svg.spark { display: block; }
         <a class="item" data-what="vista">Vista actual (filtros aplicados)<span class="desc">Exporta lo que ves en pantalla</span></a>
         <a class="item" data-what="todo">Dataset completo (20k filas)<span class="desc">Todos los datos crudos enriquecidos</span></a>
         <a class="item" data-what="efectividad">Efectividad por Módulo (agregado)<span class="desc">Ranking con YoY y semáforo</span></a>
-        <a class="item" data-what="productos">Productos (agregado)<span class="desc">Por SAP con YoY y Mix Transfer</span></a>
+        <a class="item" data-what="productos">Productos (agregado)<span class="desc">Por SAP con YoY y % Transfer</span></a>
       </div>
     </div>
   </div>
@@ -117,9 +121,7 @@ svg.spark { display: block; }
   <div class="tabs">
     <button class="tab primary active" data-tab="efectividad">Efectividad por Módulo</button>
     <button class="tab" data-tab="combos">Ranking de Combos</button>
-    <button class="tab" data-tab="productos">Productos · Tendencia</button>
-    <button class="tab" data-tab="mix">Mix Transfer</button>
-    <button class="tab alerts" data-tab="alertas">Alertas · En Riesgo</button>
+    <button class="tab" data-tab="productos">Productos &middot; Tendencia</button>
   </div>
 
   <div class="panel">
@@ -127,8 +129,7 @@ svg.spark { display: block; }
     <div id="noteArea"></div>
     <div class="scroll-wrap"><table id="mainTable"><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
     <div id="detailPanel">
-      <h3 id="detailTitle" style="margin:0 0 12px;color:#1a3a52;font-size:15px;"></h3>
-      <div class="scroll-wrap"><table id="detailTable"><thead id="detailThead"></thead><tbody id="detailTbody"></tbody></table></div>
+      <div id="detailContent"></div>
     </div>
   </div>
 </main>
@@ -140,9 +141,9 @@ const SPARK = DATA.spark || {};
 const SAPT = DATA.sapTotals || {};
 
 const fmt = n => n >= 1000 ? Math.round(n).toLocaleString("es-AR") : Math.round(n).toString();
-const pct = v => v === null || v === undefined || !isFinite(v) ? "\u2014" : (v*100).toFixed(1) + "%";
+const pct = v => v === null || v === undefined || !isFinite(v) ? "—" : (v*100).toFixed(1) + "%";
 const pctCap = v => {
-  if (v === null || v === undefined || !isFinite(v)) return "\u2014";
+  if (v === null || v === undefined || !isFinite(v)) return "—";
   const capped = Math.max(-0.95, Math.min(5, v));
   return (capped*100).toFixed(0) + "%" + (v !== capped ? "*" : "");
 };
@@ -150,14 +151,34 @@ const pctClass = v => v === null || v === undefined || !isFinite(v) ? "muted" : 
 const mesLabel = m => m.toString().slice(0,4) + "-" + m.toString().slice(4,6);
 const mesMinus12 = m => { const y = Math.floor(m/100), mm = m%100; return (y-1)*100 + mm; };
 
-function sparkSvg(sap) {
+function sparkBigSvg(sap, width = 280, height = 70) {
   const arr = SPARK[sap]; if (!arr || arr.length === 0) return "";
   const max = Math.max(...arr, 1);
-  const w = 90, h = 22, n = arr.length;
-  const pts = arr.map((v,i) => `${(i/(n-1))*w},${h - (v/max)*(h-2) - 1}`).join(" ");
+  const w = width, h = height, n = arr.length;
+  const pad = 8;
+  const pts = arr.map((v,i) => `${pad + (i/(n-1))*(w-2*pad)},${h - (v/max)*(h-2*pad) - pad}`).join(" ");
   const lastV = arr[n-1];
   const color = lastV >= arr[0] ? "#1a7a3b" : "#b3261e";
-  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5"/><circle cx="${w}" cy="${h - (lastV/max)*(h-2) - 1}" r="2" fill="${color}"/></svg>`;
+  // Etiquetas de mes (cada 3)
+  const meses = [];
+  let yS = 2026, mS = 5;
+  for (let i = 0; i < 12; i++) { meses.unshift(yS*100 + mS); mS--; if (mS < 1) { mS = 12; yS--; } }
+  let labels = "";
+  meses.forEach((mm, i) => {
+    if (i % 3 === 0 || i === n - 1) {
+      const x = pad + (i/(n-1))*(w-2*pad);
+      labels += `<text x="${x}" y="${h-1}" text-anchor="middle" font-size="9" fill="#888">${mesLabel(mm)}</text>`;
+    }
+  });
+  // Puntos
+  let points = "";
+  arr.forEach((v,i) => {
+    const x = pad + (i/(n-1))*(w-2*pad);
+    const y = h - (v/max)*(h-2*pad) - pad;
+    const isLast = i === n - 1;
+    points += `<circle cx="${x}" cy="${y}" r="${isLast?3:1.5}" fill="${isLast?color:'#999'}"/>`;
+  });
+  return `<svg class="spark-big" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2"/>${points}${labels}</svg>`;
 }
 function semaforoClase(score) {
   if (score === null || !isFinite(score)) return "gris";
@@ -172,7 +193,7 @@ function sapTotalInRange(sap, mdFrom, mdTo) {
   return s;
 }
 
-const S = { tab: "efectividad", sortCol: null, sortDir: "desc", selectedCombo: null, selectedMod: null, lastView: { header: [], rows: [] } };
+const S = { tab: "efectividad", sortCol: null, sortDir: "desc", selected: null, lastView: { header: [], rows: [] } };
 
 function uniq(arr) { return [...new Set(arr)].filter(Boolean).sort(); }
 
@@ -219,15 +240,13 @@ function renderKpis(rows) {
   });
   const varYoY = ufYoYSum > 0 ? (ufActualSum - ufYoYSum) / ufYoYSum : null;
   const mixTransfer = ventasPeriodo > 0 ? ufPeriodo / ventasPeriodo : null;
-  const nRiesgo = new Set(rows.filter(r => r.rg === 1).map(r => r.s)).size;
 
   document.getElementById("kpis").innerHTML =
     `<div class="kpi"><span class="tt" data-tip="Unidades facturadas vía Transfer en el rango seleccionado">?</span><div class="label">Uni Fact Transfer</div><div class="value">${fmt(ufPeriodo)}</div></div>` +
     `<div class="kpi"><span class="tt" data-tip="Ventas totales del producto (todos los canales, no solo Transfer)">?</span><div class="label">Ventas Totales</div><div class="value">${fmt(ventasPeriodo)}</div></div>` +
-    `<div class="kpi"><span class="tt" data-tip="% de ventas totales que se canalizó por Transfer con descuento">?</span><div class="label">% vía Transfer</div><div class="value">${mixTransfer !== null ? (mixTransfer*100).toFixed(1) + "%" : "\u2014"}</div></div>` +
+    `<div class="kpi"><span class="tt" data-tip="% de ventas totales que se canalizó por Transfer con descuento">?</span><div class="label">% vía Transfer</div><div class="value">${mixTransfer !== null ? (mixTransfer*100).toFixed(1) + "%" : "—"}</div></div>` +
     `<div class="kpi"><div class="label">Combos distintos</div><div class="value">${nCombos}</div></div>` +
-    `<div class="kpi ${varYoY === null ? '' : (varYoY > 0 ? 'green' : 'red')}"><span class="tt" data-tip="Var% AGREGADA: suma(actual) vs suma(año anterior mismo período). No promedio de ratios">?</span><div class="label">Var% YoY del período</div><div class="value">${pct(varYoY)}</div></div>` +
-    `<div class="kpi red"><span class="tt" data-tip="Productos con 2+ de los últimos 3 meses cayendo >5%">?</span><div class="label">Productos en riesgo</div><div class="value">${nRiesgo}</div></div>`;
+    `<div class="kpi ${varYoY === null ? '' : (varYoY > 0 ? 'green' : 'red')}"><span class="tt" data-tip="Var% AGREGADA: suma(actual) vs suma(año anterior mismo período)">?</span><div class="label">Var% YoY del período</div><div class="value">${pct(varYoY)}</div></div>`;
 }
 
 function sortArr(arr, col, dir) {
@@ -240,6 +259,7 @@ function sortArr(arr, col, dir) {
   });
 }
 
+// ===== EFECTIVIDAD POR MÓDULO =====
 function renderEfectividad(rows) {
   const md = +document.getElementById("fMesDesde").value;
   const mh = +document.getElementById("fMesHasta").value;
@@ -258,15 +278,16 @@ function renderEfectividad(rows) {
 
   const byMod = {};
   rows.filter(r => r.mc !== "SIN_MODULO").forEach(r => {
-    if (!byMod[r.m]) byMod[r.m] = { m: r.m, linea: r.l, products: {}, mesesActivos: new Set(), combo: r.c, nc: r.nc };
-    if (!byMod[r.m].products[r.s]) byMod[r.m].products[r.s] = { sap: r.s, prod: r.p, uf: 0 };
+    if (!byMod[r.m]) byMod[r.m] = { m: r.m, linea: r.l, products: {}, mesesActivos: new Set(), nc: r.nc };
+    if (!byMod[r.m].products[r.s]) byMod[r.m].products[r.s] = { sap: r.s, prod: r.p, presentacion: r.pr, uf: 0, ventas: 0 };
     byMod[r.m].products[r.s].uf += r.uf;
+    byMod[r.m].products[r.s].ventas += (r.vn || 0);
     byMod[r.m].mesesActivos.add(r.mes);
   });
 
   const arr = Object.values(byMod).map(mod => {
     const prodArr = Object.values(mod.products);
-    let sumUp = 0, sumW = 0, nProdValid = 0, nProdPos = 0, ufTotal = 0;
+    let sumUp = 0, sumW = 0, nProdValid = 0, nProdPos = 0, ufTotal = 0, ventasTotal = 0;
     const prodDetails = [];
     prodArr.forEach(p => {
       const ufActual = sapTotalInRange(p.sap, md, mh);
@@ -280,15 +301,16 @@ function renderEfectividad(rows) {
         if (uplift > 0.1) nProdPos++;
       }
       ufTotal += p.uf;
+      ventasTotal += p.ventas;
       prodDetails.push({ ...p, ufActual, ufAnt, uplift });
     });
     const score = sumW > 0 ? sumUp / sumW : null;
     const principal = prodArr.slice().sort((a,b) => b.uf - a.uf)[0];
     return {
-      m: mod.m, linea: mod.linea, combo: mod.combo, nc: mod.nc,
+      m: mod.m, linea: mod.linea, nc: mod.nc,
       nProd: prodArr.length, nProdValid, nProdPos,
       mesesActivos: mod.mesesActivos.size,
-      ufTotal, score,
+      ufTotal, ventasTotal, score,
       principal: principal ? principal.prod : "",
       principalSap: principal ? principal.sap : "",
       prodDetails
@@ -297,16 +319,10 @@ function renderEfectividad(rows) {
 
   sortArr(arr, S.sortCol || "score", S.sortDir);
 
-  // Guardar vista para exportación
   S.lastView = {
     name: "efectividad",
-    header: ["Modulo","Linea","Productos_en_modulo","Meses_activo","Producto_principal","SAP_principal","UF_modulo","UF_periodo_actual","UF_periodo_anterior","Score_YoY","Semaforo","Productos_creciendo","Productos_total"],
-    rows: arr.map(m => {
-      const uA = m.prodDetails.reduce((s,p)=>s+p.ufActual,0);
-      const uB = m.prodDetails.reduce((s,p)=>s+p.ufAnt,0);
-      const sem = semaforoClase(m.score).toUpperCase();
-      return [m.m, m.linea, m.nc, m.mesesActivos, m.principal, m.principalSap, m.ufTotal, uA, uB, m.score===null?"":m.score, sem, m.nProdPos, m.nProdValid];
-    })
+    header: ["Modulo","Linea","Productos","Meses_activo","Producto_principal","SAP_principal","UF_modulo","Ventas_totales","Score_YoY","Semaforo","Prods_creciendo","Prods_evaluables"],
+    rows: arr.map(m => [m.m, m.linea, m.nc, m.mesesActivos, m.principal, m.principalSap, m.ufTotal, m.ventasTotal, m.score===null?"":m.score, semaforoClase(m.score).toUpperCase(), m.nProdPos, m.nProdValid])
   };
 
   document.getElementById("thead").innerHTML = `<tr>
@@ -316,30 +332,30 @@ function renderEfectividad(rows) {
     <th class="sortable" data-col="nc">#P</th>
     <th class="sortable" data-col="mesesActivos">Meses activo</th>
     <th class="sortable" data-col="principal">Producto principal</th>
-    <th>Tendencia 12m</th>
-    <th class="sortable" data-col="ufTotal">UF módulo</th>
+    <th class="sortable" data-col="ufTotal">UF Transfer</th>
+    <th class="sortable" data-col="ventasTotal">Ventas Totales</th>
     <th class="sortable" data-col="score">Uplift vs año ant.</th>
     <th class="sortable" data-col="nProdPos">Prods creciendo</th>
   </tr>`;
   document.getElementById("tbody").innerHTML = arr.map(m => {
     const clase = semaforoClase(m.score);
-    return `<tr class="${clase} combo-row" data-mod="${m.m.replace(/"/g,'&quot;')}">
+    return `<tr class="${clase} combo-row" data-modkey="${m.m.replace(/"/g,'&quot;')}">
       <td><span class="semaforo ${clase}"></span></td>
       <td>${m.m}</td>
       <td><span class="tag">${m.linea}</span></td>
       <td>${m.nc}</td>
       <td>${m.mesesActivos}</td>
       <td>${m.principal}</td>
-      <td>${sparkSvg(m.principalSap)}</td>
       <td>${fmt(m.ufTotal)}</td>
+      <td>${m.ventasTotal > 0 ? fmt(m.ventasTotal) : '<span class="muted">—</span>'}</td>
       <td class="${pctClass(m.score)}">${pctCap(m.score)}</td>
       <td>${m.nProdPos} / ${m.nProdValid}</td>
     </tr>`;
   }).join("");
   document.querySelectorAll(".combo-row").forEach(tr => tr.addEventListener("click", () => {
-    S.selectedMod = tr.dataset.mod; renderModuloDetail(arr, S.selectedMod);
+    S.selected = tr.dataset.modkey; renderModuloDetail(arr, S.selected);
   }));
-  if (S.selectedMod) renderModuloDetail(arr, S.selectedMod);
+  if (S.selected) renderModuloDetail(arr, S.selected);
   else document.getElementById("detailPanel").classList.remove("show");
 }
 
@@ -347,17 +363,31 @@ function renderModuloDetail(modArr, modKey) {
   const mod = modArr.find(m => m.m === modKey);
   if (!mod) { document.getElementById("detailPanel").classList.remove("show"); return; }
   document.getElementById("detailPanel").classList.add("show");
-  document.getElementById("detailTitle").innerHTML =
-    `Detalle <strong>${mod.m}</strong> (${mod.linea}) · ${mod.nProd} productos · ${mod.mesesActivos} meses activos · Score ${pctCap(mod.score)}`;
-  document.getElementById("detailThead").innerHTML =
-    `<tr><th>SAP</th><th>Producto</th><th>Tendencia</th><th>UF en el módulo</th><th>UF total período actual</th><th>UF total período anterior</th><th>Uplift del producto</th></tr>`;
   const arr = mod.prodDetails.slice().sort((a,b) => b.uf - a.uf);
-  document.getElementById("detailTbody").innerHTML = arr.map(p => {
-    const cl = semaforoClase(p.uplift);
-    return `<tr class="${cl}"><td>${p.sap}</td><td>${p.prod}</td><td>${sparkSvg(p.sap)}</td><td>${fmt(p.uf)}</td><td>${fmt(p.ufActual)}</td><td>${fmt(p.ufAnt)}</td><td class="${pctClass(p.uplift)}">${pctCap(p.uplift)}</td></tr>`;
-  }).join("");
+  const html = `
+    <div class="detail-header">
+      <div class="info">
+        <h3>${mod.m}</h3>
+        <div class="meta">Línea <strong>${mod.linea}</strong> · ${mod.nProd} productos · ${mod.mesesActivos} meses activo · Score <strong>${pctCap(mod.score)}</strong></div>
+      </div>
+      <div class="chart-box">
+        ${sparkBigSvg(mod.principalSap)}
+        <div class="legend">Tendencia producto principal (${mod.principal})</div>
+      </div>
+    </div>
+    <div class="scroll-wrap"><table>
+      <thead><tr><th>SAP</th><th>Producto</th><th>Presentación</th><th>UF en el módulo</th><th>UF total período</th><th>UF año anterior</th><th>Uplift</th></tr></thead>
+      <tbody>
+        ${arr.map(p => {
+          const cl = semaforoClase(p.uplift);
+          return `<tr class="${cl}"><td>${p.sap}</td><td>${p.prod}</td><td class="muted">${p.presentacion||""}</td><td>${fmt(p.uf)}</td><td>${fmt(p.ufActual)}</td><td>${fmt(p.ufAnt)}</td><td class="${pctClass(p.uplift)}">${pctCap(p.uplift)}</td></tr>`;
+        }).join("")}
+      </tbody>
+    </table></div>`;
+  document.getElementById("detailContent").innerHTML = html;
 }
 
+// ===== RANKING DE COMBOS =====
 function renderCombos(rows) {
   const md = +document.getElementById("fMesDesde").value;
   const mh = +document.getElementById("fMesHasta").value;
@@ -365,15 +395,18 @@ function renderCombos(rows) {
   const minBase = +document.getElementById("fBase").value || 0;
 
   document.getElementById("noteArea").innerHTML =
-    `<div class="note info">Var% YoY de cada combo = suma agregada del período actual vs mismo período año anterior. Filas con <code>*</code> indican valor capado en display.</div>`;
+    `<div class="note info">Click en un combo para ver el detalle con productos y presentaciones.</div>`;
 
   const byCombo = {};
   rows.filter(r => r.c !== "SIN_MODULO").forEach(r => {
-    if (!byCombo[r.c]) byCombo[r.c] = { uf: 0, ventas: 0, modulos: new Set(), prods: new Set(), saps: new Set(), mesesActivos: new Set(), nc: r.nc, linea: r.l };
+    if (!byCombo[r.c]) byCombo[r.c] = { uf: 0, ventas: 0, modulos: new Set(), prods: new Set(), saps: new Set(), mesesActivos: new Set(), nc: r.nc, linea: r.l, prodDetails: {} };
     const c = byCombo[r.c];
     c.uf += r.uf; if (r.vn) c.ventas += r.vn;
     c.modulos.add(r.m); c.prods.add(r.p); c.saps.add(r.s);
     c.mesesActivos.add(r.mes);
+    if (!c.prodDetails[r.s]) c.prodDetails[r.s] = { sap: r.s, prod: r.p, presentacion: r.pr, uf: 0, ventas: 0 };
+    c.prodDetails[r.s].uf += r.uf;
+    c.prodDetails[r.s].ventas += (r.vn || 0);
   });
   const arr = Object.entries(byCombo).map(([id, d]) => {
     let sumAct = 0, sumAnt = 0;
@@ -382,19 +415,19 @@ function renderCombos(rows) {
       sumAnt += sapTotalInRange(sap, mdYoY, mhYoY);
     });
     const yoy = sumAnt >= minBase ? (sumAct - sumAnt) / sumAnt : null;
-    const mix = d.ventas > 0 ? d.uf / d.ventas : null;
     return {
       id, uf: d.uf, ventas: d.ventas, mesesActivos: d.mesesActivos.size, nc: d.nc,
-      modulos: [...d.modulos].join(", "), prods: [...d.prods].join(" \u00b7 "),
-      linea: d.linea, yoy, mix
+      modulos: [...d.modulos].join(", "), prods: [...d.prods].join(" · "),
+      linea: d.linea, yoy,
+      prodDetails: Object.values(d.prodDetails)
     };
   });
   sortArr(arr, S.sortCol || "uf", S.sortDir);
 
   S.lastView = {
     name: "combos",
-    header: ["ComboID","Productos","Linea","Cant_productos","UF_transfer","Ventas_totales","Pct_via_Transfer","Var_YoY","Meses_vigencia","Modulos_usados"],
-    rows: arr.map(c => [c.id, c.prods, c.linea, c.nc, c.uf, c.ventas, c.mix===null?"":c.mix, c.yoy===null?"":c.yoy, c.mesesActivos, c.modulos])
+    header: ["ComboID","Productos","Linea","Cant_productos","UF_transfer","Ventas_totales","Var_YoY","Meses_vigencia","Modulos_usados"],
+    rows: arr.map(c => [c.id, c.prods, c.linea, c.nc, c.uf, c.ventas, c.yoy===null?"":c.yoy, c.mesesActivos, c.modulos])
   };
 
   document.getElementById("thead").innerHTML = `<tr>
@@ -404,171 +437,180 @@ function renderCombos(rows) {
     <th class="sortable" data-col="nc">#P</th>
     <th class="sortable" data-col="uf">UF Transfer</th>
     <th class="sortable" data-col="ventas">Ventas Totales</th>
-    <th class="sortable" data-col="mix">% vía Transfer</th>
     <th class="sortable" data-col="yoy">Var% YoY agr.</th>
     <th class="sortable" data-col="mesesActivos">Meses</th>
   </tr>`;
   document.getElementById("tbody").innerHTML = arr.slice(0, 200).map(c =>
-    `<tr class="combo-row ${c.id===S.selectedCombo?'selected':''}" data-combo="${c.id.replace(/"/g,'&quot;')}">
+    `<tr class="combo-row ${c.id===S.selected?'selected':''}" data-combo="${c.id.replace(/"/g,'&quot;')}">
       <td style="font-family:monospace;font-size:11px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.id}">${c.id}</td>
       <td>${c.prods}</td>
       <td><span class="tag">${c.linea}</span></td>
       <td>${c.nc}</td>
       <td>${fmt(c.uf)}</td>
-      <td>${c.ventas > 0 ? fmt(c.ventas) : '<span class="muted">\u2014</span>'}</td>
-      <td>${c.mix !== null ? (c.mix*100).toFixed(1)+"%" : '<span class="muted">\u2014</span>'}</td>
+      <td>${c.ventas > 0 ? fmt(c.ventas) : '<span class="muted">—</span>'}</td>
       <td class="${pctClass(c.yoy)}">${pctCap(c.yoy)}</td>
       <td>${c.mesesActivos}</td>
     </tr>`).join("");
   document.querySelectorAll(".combo-row").forEach(tr => tr.addEventListener("click", () => {
-    S.selectedCombo = tr.dataset.combo; renderCombos(rows); renderComboDetail(rows, S.selectedCombo);
+    S.selected = tr.dataset.combo; renderCombos(rows); renderComboDetail(arr, S.selected);
   }));
-  if (S.selectedCombo) renderComboDetail(rows, S.selectedCombo);
+  if (S.selected) renderComboDetail(arr, S.selected);
   else document.getElementById("detailPanel").classList.remove("show");
 }
 
-function renderComboDetail(rows, comboId) {
-  const comboRows = rows.filter(r => r.c === comboId);
-  if (!comboRows.length) { document.getElementById("detailPanel").classList.remove("show"); return; }
-  comboRows.sort((a,b) => a.mes - b.mes || (a.p||"").localeCompare(b.p||""));
+function renderComboDetail(arr, comboId) {
+  const c = arr.find(x => x.id === comboId);
+  if (!c) { document.getElementById("detailPanel").classList.remove("show"); return; }
   document.getElementById("detailPanel").classList.add("show");
-  const totalUf = comboRows.reduce((a,r)=>a+r.uf,0);
-  document.getElementById("detailTitle").innerHTML =
-    `Detalle combo <span style="font-family:monospace;background:#e1efff;padding:2px 8px;border-radius:4px">${comboId}</span> · ${comboRows.length} registros · Total ${fmt(totalUf)} UF`;
-  document.getElementById("detailThead").innerHTML =
-    `<tr><th>SAP</th><th>Producto</th><th>Tendencia 12m</th><th>Módulo</th><th>Mes</th><th>UF Transfer</th><th>Ventas Totales</th><th>% vía Transfer</th><th>Var% M/M</th><th>Var% YoY</th></tr>`;
-  document.getElementById("detailTbody").innerHTML = comboRows.map(r =>
-    `<tr class="${r.rg===1?'riesgo':''}"><td>${r.s||"\u2014"}</td><td>${r.p||r.pr}</td><td>${sparkSvg(r.s)}</td><td class="muted">${r.m}</td><td>${mesLabel(r.mes)}</td><td>${fmt(r.uf)}</td><td>${r.vn ? fmt(r.vn) : '<span class="muted">\u2014</span>'}</td><td>${r.ra !== null ? (r.ra*100).toFixed(0)+"%" : '<span class="muted">\u2014</span>'}</td><td class="${pctClass(r.v)}">${pctCap(r.v)}</td><td class="${pctClass(r.vy)}">${pctCap(r.vy)}</td></tr>`
-  ).join("");
+  const sorted = c.prodDetails.slice().sort((a,b) => b.uf - a.uf);
+  const html = `
+    <div class="detail-header">
+      <div class="info">
+        <h3>Combo: ${c.id}</h3>
+        <div class="meta">Línea <strong>${c.linea}</strong> · ${c.nc} productos · ${c.mesesActivos} meses vigente · YoY <strong>${pctCap(c.yoy)}</strong></div>
+        <div class="meta" style="margin-top:6px">Usado en módulos: <span class="muted">${c.modulos}</span></div>
+      </div>
+    </div>
+    <div class="scroll-wrap"><table>
+      <thead><tr><th>SAP</th><th>Producto</th><th>Presentación</th><th>UF Transfer</th><th>Ventas Totales</th><th>Mix Transfer</th></tr></thead>
+      <tbody>
+        ${sorted.map(p => {
+          const mix = p.ventas > 0 ? p.uf / p.ventas : null;
+          return `<tr><td>${p.sap}</td><td>${p.prod}</td><td class="muted">${p.presentacion||""}</td><td>${fmt(p.uf)}</td><td>${p.ventas>0?fmt(p.ventas):'<span class="muted">—</span>'}</td><td>${mix!==null?(mix*100).toFixed(1)+"%":'<span class="muted">—</span>'}</td></tr>`;
+        }).join("")}
+      </tbody>
+    </table></div>`;
+  document.getElementById("detailContent").innerHTML = html;
 }
 
+// ===== PRODUCTOS · TENDENCIA =====
 function renderProductos(rows) {
   const md = +document.getElementById("fMesDesde").value;
   const mh = +document.getElementById("fMesHasta").value;
-  const mdYoY = mesMinus12(md), mhYoY = mesMinus12(mh);
-  const minBase = +document.getElementById("fBase").value || 0;
 
   const byProd = {};
   rows.forEach(r => {
     const k = r.s || r.pr;
-    if (!byProd[k]) byProd[k] = { s: r.s, p: r.p || r.pr, pr: r.pr, l: r.l, sg: r.sg, uf: 0, ventas: 0, nMod: new Set(), riesgo: 0 };
+    if (!byProd[k]) byProd[k] = { s: r.s, p: r.p || r.pr, pr: r.pr, l: r.l, sg: r.sg, uf: 0, ventas: 0, nMod: new Set(), mesesConVenta: new Set(), primerMes: 99999999, ultimoMes: 0 };
     byProd[k].uf += r.uf;
     if (r.vn) byProd[k].ventas += r.vn;
     if (r.mc !== "SIN_MODULO") byProd[k].nMod.add(r.m);
-    if (r.rg === 1) byProd[k].riesgo = 1;
+    if (r.uf > 0) {
+      byProd[k].mesesConVenta.add(r.mes);
+      if (r.mes < byProd[k].primerMes) byProd[k].primerMes = r.mes;
+      if (r.mes > byProd[k].ultimoMes) byProd[k].ultimoMes = r.mes;
+    }
   });
   const arr = Object.values(byProd).map(p => {
-    const totAct = p.s ? sapTotalInRange(p.s, md, mh) : p.uf;
-    const totAnt = p.s ? sapTotalInRange(p.s, mdYoY, mhYoY) : 0;
-    const yoy = totAnt >= minBase ? (totAct - totAnt) / totAnt : null;
     const mix = p.ventas > 0 ? p.uf / p.ventas : null;
-    return {...p, nMod: p.nMod.size, yoy, mix, totAnt };
+    return {
+      ...p,
+      nMod: p.nMod.size,
+      mesesActivos: p.mesesConVenta.size,
+      periodo: p.primerMes !== 99999999 ? `${mesLabel(p.primerMes)} → ${mesLabel(p.ultimoMes)}` : "—",
+      mix
+    };
   });
   sortArr(arr, S.sortCol || "uf", S.sortDir);
 
   S.lastView = {
     name: "productos",
-    header: ["SAP","Producto","Presentacion","Linea","Segmentacion","Num_modulos","UF_transfer","Ventas_totales","Pct_via_Transfer","Var_YoY","En_riesgo"],
-    rows: arr.map(r => [r.s||"", r.p, r.pr||"", r.l, r.sg, r.nMod, r.uf, r.ventas, r.mix===null?"":r.mix, r.yoy===null?"":r.yoy, r.riesgo])
+    header: ["SAP","Producto","Presentacion","Linea","Segmentacion","Num_modulos","Meses_activos","Periodo_Transfer","UF_transfer","Ventas_totales","Mix_Transfer"],
+    rows: arr.map(r => [r.s||"", r.p, r.pr||"", r.l, r.sg, r.nMod, r.mesesActivos, r.periodo, r.uf, r.ventas, r.mix===null?"":r.mix])
   };
 
-  document.getElementById("noteArea").innerHTML = "";
+  document.getElementById("noteArea").innerHTML = `<div class="note info">Click en un producto para ver tendencia y con qué otros productos comparte módulo.</div>`;
   document.getElementById("thead").innerHTML = `<tr>
     <th class="sortable" data-col="s">SAP</th>
     <th class="sortable" data-col="p">Producto</th>
-    <th>Tendencia 12m</th>
+    <th>Presentación</th>
     <th class="sortable" data-col="l">Línea</th>
     <th class="sortable" data-col="sg">Segmentación</th>
     <th class="sortable" data-col="nMod">#Módulos</th>
+    <th class="sortable" data-col="mesesActivos">Meses activo</th>
+    <th class="sortable" data-col="periodo">Período Transfer</th>
     <th class="sortable" data-col="uf">UF Transfer</th>
     <th class="sortable" data-col="ventas">Ventas Totales</th>
     <th class="sortable" data-col="mix">% vía Transfer</th>
-    <th class="sortable" data-col="yoy">Var% YoY agr.</th>
-    <th class="sortable" data-col="riesgo">!</th>
   </tr>`;
   document.getElementById("tbody").innerHTML = arr.slice(0, 300).map(r =>
-    `<tr class="${r.riesgo===1?'riesgo':''}"><td>${r.s||""}</td><td>${r.p}</td><td>${sparkSvg(r.s)}</td><td><span class="tag">${r.l}</span></td><td>${r.sg}</td><td>${r.nMod}</td><td>${fmt(r.uf)}</td><td>${r.ventas > 0 ? fmt(r.ventas) : '<span class="muted">\u2014</span>'}</td><td>${r.mix !== null ? (r.mix*100).toFixed(0)+"%" : '<span class="muted">\u2014</span>'}</td><td class="${pctClass(r.yoy)}">${pctCap(r.yoy)}</td><td>${r.riesgo===1 ? '<span class="tag riesgo">\u26A0</span>' : ''}</td></tr>`
-  ).join("");
-  document.getElementById("detailPanel").classList.remove("show");
-}
-
-function renderMix(rows) {
-  document.getElementById("noteArea").innerHTML =
-    `<div class="note info">% vía Transfer = UF Transfer / Ventas Totales. Alto (&gt;50%) = dependencia del descuento. Bajo (&lt;15%) = venta orgánica.</div>`;
-  const byProd = {};
-  rows.filter(r => r.ra !== null && r.s).forEach(r => {
-    if (!byProd[r.s]) byProd[r.s] = { s: r.s, p: r.p, pr: r.pr, l: r.l, uf: 0, ventas: 0 };
-    byProd[r.s].uf += r.uf;
-    byProd[r.s].ventas += r.vn || 0;
-  });
-  const arr = Object.values(byProd).map(p => ({
-    ...p, mix: p.ventas > 0 ? p.uf/p.ventas : null, dependencia: p.ventas > 0 ? p.uf/p.ventas : 0
+    `<tr class="combo-row ${r.s===S.selected?'selected':''}" data-sap="${r.s||''}">
+      <td>${r.s||""}</td>
+      <td>${r.p}</td>
+      <td class="muted">${r.pr||""}</td>
+      <td><span class="tag">${r.l}</span></td>
+      <td>${r.sg}</td>
+      <td>${r.nMod}</td>
+      <td>${r.mesesActivos}</td>
+      <td>${r.periodo}</td>
+      <td>${fmt(r.uf)}</td>
+      <td>${r.ventas > 0 ? fmt(r.ventas) : '<span class="muted">—</span>'}</td>
+      <td>${r.mix !== null ? (r.mix*100).toFixed(0)+"%" : '<span class="muted">—</span>'}</td>
+    </tr>`).join("");
+  document.querySelectorAll(".combo-row").forEach(tr => tr.addEventListener("click", () => {
+    const sap = tr.dataset.sap;
+    if (!sap) return;
+    S.selected = sap; renderProductos(rows); renderProductoDetail(rows, sap);
   }));
-  sortArr(arr, S.sortCol || "dependencia", S.sortDir);
-
-  S.lastView = {
-    name: "mix_transfer",
-    header: ["SAP","Producto","Linea","UF_transfer","Ventas_totales","Pct_via_Transfer","Clasificacion"],
-    rows: arr.map(r => {
-      const m = r.mix || 0;
-      let cls = "Sin Transfer";
-      if (m > 0.5) cls = "Alta dependencia";
-      else if (m > 0.25) cls = "Dependencia media";
-      else if (m > 0.05) cls = "Baja";
-      else cls = "Marginal";
-      return [r.s, r.p, r.l, r.uf, r.ventas, r.mix===null?"":r.mix, cls];
-    })
-  };
-
-  document.getElementById("thead").innerHTML = `<tr>
-    <th>SAP</th><th>Producto</th><th>Línea</th><th>Tendencia 12m</th>
-    <th class="sortable" data-col="uf">UF Transfer</th>
-    <th class="sortable" data-col="ventas">Ventas Totales</th>
-    <th class="sortable" data-col="mix">% vía Transfer</th>
-    <th>Clasificación</th>
-  </tr>`;
-  document.getElementById("tbody").innerHTML = arr.slice(0, 400).map(r => {
-    const m = r.mix || 0;
-    let label = '<span class="tag">sin Tf</span>';
-    if (m > 0.5) label = '<span class="tag" style="background:#ffe5e5;color:#b3261e">Alta dep.</span>';
-    else if (m > 0.25) label = '<span class="tag" style="background:#fff4d4;color:#7d5a00">Media</span>';
-    else if (m > 0.05) label = '<span class="tag" style="background:#e1efff;color:#1a3a52">Baja</span>';
-    else label = '<span class="tag" style="background:#d4f0d7;color:#1a5e2f">Marginal</span>';
-    return `<tr><td>${r.s}</td><td>${r.p}</td><td><span class="tag">${r.l}</span></td><td>${sparkSvg(r.s)}</td><td>${fmt(r.uf)}</td><td>${fmt(r.ventas)}</td><td>${r.mix !== null ? (r.mix*100).toFixed(1)+"%" : "\u2014"}</td><td>${label}</td></tr>`;
-  }).join("");
-  document.getElementById("detailPanel").classList.remove("show");
+  if (S.selected && byProd[S.selected]) renderProductoDetail(rows, S.selected);
+  else document.getElementById("detailPanel").classList.remove("show");
 }
 
-function renderAlertas(rows) {
-  const byProd = {};
-  rows.filter(r => r.rg === 1).forEach(r => {
-    if (!byProd[r.s]) byProd[r.s] = { s: r.s, p: r.p, pr: r.pr, l: r.l, sg: r.sg, resp: r.r, ultimoMes: 0, lastMod: "", uf_last: 0, varsLast: [] };
-    if (r.mes > byProd[r.s].ultimoMes) {
-      byProd[r.s].ultimoMes = r.mes; byProd[r.s].lastMod = r.m; byProd[r.s].uf_last = r.uf;
-    }
-    if (r.v !== null) byProd[r.s].varsLast.push({mes: r.mes, v: r.v});
-  });
-  const arr = Object.values(byProd).map(r => {
-    r.varsLast.sort((a,b) => b.mes - a.mes);
-    r.ultimaVar = r.varsLast[0] ? r.varsLast[0].v : null;
-    return r;
-  });
-  arr.sort((a,b) => (a.ultimaVar||0) - (b.ultimaVar||0));
+function renderProductoDetail(rows, sap) {
+  // Encontrar toda la info del producto
+  const prodRows = rows.filter(r => r.s === sap);
+  if (!prodRows.length) { document.getElementById("detailPanel").classList.remove("show"); return; }
+  const first = prodRows[0];
 
-  S.lastView = {
-    name: "alertas",
-    header: ["SAP","Producto","Presentacion","Linea","Segmentacion","Responsable","Ultimo_mes","Ultimo_modulo","UF_ultimo_mes","Var_ultimo_mes"],
-    rows: arr.map(r => [r.s, r.p, r.pr, r.l, r.sg, r.resp, r.ultimoMes, r.lastMod, r.uf_last, r.ultimaVar===null?"":r.ultimaVar])
-  };
+  // Para cada módulo en el que estuvo este producto, encontrar otros productos que compartieron ese módulo
+  const modulosDelProducto = {};
+  prodRows.filter(r => r.mc !== "SIN_MODULO").forEach(r => {
+    if (!modulosDelProducto[r.m]) modulosDelProducto[r.m] = { meses: new Set(), uf: 0 };
+    modulosDelProducto[r.m].meses.add(r.mes);
+    modulosDelProducto[r.m].uf += r.uf;
+  });
 
-  document.getElementById("noteArea").innerHTML = '<div class="note alert">Productos con 2+ de los últimos 3 meses cayendo más de 5%.</div>';
-  document.getElementById("thead").innerHTML = `<tr>
-    <th>SAP</th><th>Producto</th><th>Tendencia 12m</th><th>Línea</th><th>Segmentación</th><th>Responsable</th><th>Último mes</th><th>Último módulo</th><th>Var% último mes</th>
-  </tr>`;
-  document.getElementById("tbody").innerHTML = arr.map(r =>
-    `<tr class="riesgo"><td>${r.s}</td><td><strong>${r.p}</strong><div class="muted" style="font-size:11px">${r.pr}</div></td><td>${sparkSvg(r.s)}</td><td><span class="tag">${r.l}</span></td><td>${r.sg}</td><td class="muted">${r.resp}</td><td>${mesLabel(r.ultimoMes)}</td><td class="muted">${r.lastMod}</td><td class="${pctClass(r.ultimaVar)}">${pctCap(r.ultimaVar)}</td></tr>`
-  ).join("");
-  document.getElementById("detailPanel").classList.remove("show");
+  // Por cada módulo: encontrar otros SAPs que estuvieron ahí en los mismos meses
+  const sharedProducts = {}; // {sap_otro: {producto, presentacion, modulos: Set, meses: Set, ufConjunta: number}}
+  Object.entries(modulosDelProducto).forEach(([mod, info]) => {
+    const otros = DATA.rows.filter(r => r.m === mod && r.s !== sap && r.s && info.meses.has(r.mes));
+    otros.forEach(o => {
+      if (!sharedProducts[o.s]) sharedProducts[o.s] = { sap: o.s, prod: o.p, presentacion: o.pr, modulos: new Set(), meses: new Set(), ufConjunta: 0 };
+      sharedProducts[o.s].modulos.add(mod);
+      sharedProducts[o.s].meses.add(o.mes);
+      sharedProducts[o.s].ufConjunta += o.uf;
+    });
+  });
+  const sharedArr = Object.values(sharedProducts).sort((a,b) => b.meses.size - a.meses.size || b.ufConjunta - a.ufConjunta);
+
+  // Construir chips de "comparte con"
+  const chipsHtml = sharedArr.length > 0 ?
+    `<div class="shares-list">${sharedArr.slice(0, 20).map(s => `<span class="chip" title="${s.modulos.size} módulo(s), ${s.meses.size} mes(es)"><strong>${s.prod}</strong> · ${s.meses.size}m</span>`).join("")}</div>` :
+    `<div class="muted" style="font-size:12px;margin-top:6px">Este producto no compartió módulo con otros en el período.</div>`;
+
+  // Lista detallada
+  const detailHtml = `
+    <div class="detail-header">
+      <div class="info">
+        <h3>${first.p} <span style="font-weight:400;color:#888">(${sap})</span></h3>
+        <div class="meta">${first.pr || ""}</div>
+        <div class="meta" style="margin-top:4px">Línea <strong>${first.l}</strong> · Segmentación <strong>${first.sg}</strong> · Responsable <strong>${first.r || "—"}</strong></div>
+        <div class="meta" style="margin-top:8px"><strong>Comparte módulo con:</strong></div>
+        ${chipsHtml}
+      </div>
+      <div class="chart-box">
+        ${sparkBigSvg(sap)}
+        <div class="legend">UF Transfer (últimos 12 meses)</div>
+      </div>
+    </div>
+    <div class="scroll-wrap"><table>
+      <thead><tr><th>Otro producto</th><th>Presentación</th><th>Módulo(s) compartido</th><th>Meses juntos</th><th>UF del compañero</th></tr></thead>
+      <tbody>
+        ${sharedArr.map(s => `<tr><td><strong>${s.prod}</strong></td><td class="muted">${s.presentacion||""}</td><td class="muted">${[...s.modulos].join(", ")}</td><td>${s.meses.size}</td><td>${fmt(s.ufConjunta)}</td></tr>`).join("") || '<tr><td colspan="5" class="muted">Sin coincidencias en el período.</td></tr>'}
+      </tbody>
+    </table></div>`;
+  document.getElementById("detailPanel").classList.add("show");
+  document.getElementById("detailContent").innerHTML = detailHtml;
 }
 
 function render() {
@@ -577,8 +619,6 @@ function render() {
   if (S.tab === "efectividad") renderEfectividad(rows);
   else if (S.tab === "combos") renderCombos(rows);
   else if (S.tab === "productos") renderProductos(rows);
-  else if (S.tab === "mix") renderMix(rows);
-  else if (S.tab === "alertas") renderAlertas(rows);
 }
 
 ["fLinea","fMesDesde","fMesHasta","fTipo","fBase"].forEach(id => document.getElementById(id).addEventListener("change", render));
@@ -588,7 +628,7 @@ document.getElementById("fBase").addEventListener("input", render);
 document.querySelectorAll(".tab").forEach(btn => btn.addEventListener("click", () => {
   document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
-  S.tab = btn.dataset.tab; S.sortCol = null; S.selectedCombo = null; S.selectedMod = null;
+  S.tab = btn.dataset.tab; S.sortCol = null; S.selected = null;
   render();
 }));
 
@@ -601,111 +641,47 @@ document.getElementById("thead").addEventListener("click", e => {
   }
 });
 
-// ================ EXPORT a Excel (via CSV con BOM UTF-8, abre nativo en Excel) ================
+// ===== EXPORT CSV =====
 function escapeCsv(v) {
   if (v === null || v === undefined) return "";
   let s = String(v);
-  const needsQuote = s.includes(";") || s.includes("\"") || s.includes("\n") || s.includes("\r");
-  if (needsQuote) { s = '"' + s.replace(/"/g, '""') + '"'; }
+  if (s.includes(";") || s.includes("\"") || s.includes("\n")) s = '"' + s.replace(/"/g, '""') + '"';
   return s;
 }
 function buildCsv(header, rows) {
-  const BOM = "\uFEFF";
-  const head = header.map(escapeCsv).join(";");
-  const body = rows.map(r => r.map(escapeCsv).join(";")).join("\r\n");
-  return BOM + head + "\r\n" + body;
+  const BOM = "﻿";
+  return BOM + header.map(escapeCsv).join(";") + "\r\n" + rows.map(r => r.map(escapeCsv).join(";")).join("\r\n");
 }
 function downloadCsv(filename, content) {
   const blob = new Blob([content], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename;
+  const a = document.createElement("a"); a.href = url; a.download = filename;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 function timestamp() {
-  const d = new Date();
-  const p = n => (n<10?"0":"")+n;
+  const d = new Date(); const p = n => (n<10?"0":"")+n;
   return d.getFullYear() + p(d.getMonth()+1) + p(d.getDate()) + "_" + p(d.getHours()) + p(d.getMinutes());
 }
-
 function exportVistaActual() {
-  // Usa S.lastView que fue guardado en el último render
   if (!S.lastView.rows || !S.lastView.rows.length) { alert("No hay datos en la vista actual."); return; }
-  const csv = buildCsv(S.lastView.header, S.lastView.rows);
-  downloadCsv(`dashboard_${S.lastView.name}_${timestamp()}.csv`, csv);
+  downloadCsv(`dashboard_${S.lastView.name}_${timestamp()}.csv`, buildCsv(S.lastView.header, S.lastView.rows));
 }
-
 function exportTodo() {
-  // Aplica filtros globales y exporta todas las columnas crudas
   const rows = filtered();
-  const header = ["CodSAP","Producto","Presentacion","Modulo","Modulo_Class","Tipo_Objetivo","Linea","Responsable","Segmentacion","AnoMes","Uni_Fact","Dto_Min","Dto_Max","ComboID","Cant_Productos","UF_Mes_Anterior","Var_Pct_MM","Ventas_Totales","Pct_via_Transfer","Var_Pct_YoY","Flag_Riesgo"];
-  const body = rows.map(r => [r.s, r.p, r.pr, r.m, r.mc, r.t, r.l, r.r, r.sg, r.mes, r.uf, r.dmi, r.dma, r.c, r.nc, r.ufp, r.v===null?"":r.v, r.vn===null?"":r.vn, r.ra===null?"":r.ra, r.vy===null?"":r.vy, r.rg]);
+  const header = ["CodSAP","Producto","Presentacion","Modulo","Tipo_Objetivo","Linea","Responsable","Segmentacion","AnoMes","Uni_Fact","ComboID","Cant_Productos","Var_Pct_MM","Ventas_Totales","Mix_Transfer","Var_Pct_YoY"];
+  const body = rows.map(r => [r.s, r.p, r.pr, r.m, r.t, r.l, r.r, r.sg, r.mes, r.uf, r.c, r.nc, r.v===null?"":r.v, r.vn===null?"":r.vn, r.ra===null?"":r.ra, r.vy===null?"":r.vy]);
   downloadCsv(`dashboard_completo_${timestamp()}.csv`, buildCsv(header, body));
 }
-
 function exportAggregation(what) {
-  // Re-compute aggregates without mutating UI
   const rows = filtered();
   const md = +document.getElementById("fMesDesde").value;
   const mh = +document.getElementById("fMesHasta").value;
   const mdYoY = mesMinus12(md), mhYoY = mesMinus12(mh);
   const minBase = +document.getElementById("fBase").value || 0;
-
-  if (what === "efectividad") {
-    const byMod = {};
-    rows.filter(r => r.mc !== "SIN_MODULO").forEach(r => {
-      if (!byMod[r.m]) byMod[r.m] = { m: r.m, linea: r.l, products: {}, mesesActivos: new Set(), nc: r.nc };
-      if (!byMod[r.m].products[r.s]) byMod[r.m].products[r.s] = { sap: r.s, prod: r.p, uf: 0 };
-      byMod[r.m].products[r.s].uf += r.uf;
-      byMod[r.m].mesesActivos.add(r.mes);
-    });
-    const rowsOut = [];
-    Object.values(byMod).forEach(mod => {
-      const prodArr = Object.values(mod.products);
-      let sumUp = 0, sumW = 0;
-      let ufAct = 0, ufAnt = 0;
-      prodArr.forEach(p => {
-        const a = sapTotalInRange(p.sap, md, mh);
-        const b = sapTotalInRange(p.sap, mdYoY, mhYoY);
-        ufAct += a; ufAnt += b;
-        if (b >= minBase) { sumUp += ((a-b)/b) * p.uf; sumW += p.uf; }
-      });
-      const score = sumW > 0 ? sumUp/sumW : null;
-      const principal = prodArr.slice().sort((a,b) => b.uf - a.uf)[0];
-      const sem = semaforoClase(score).toUpperCase();
-      rowsOut.push([mod.m, mod.linea, mod.nc, mod.mesesActivos.size, principal ? principal.prod : "", principal ? principal.sap : "", prodArr.reduce((s,p)=>s+p.uf,0), ufAct, ufAnt, score===null?"":score, sem]);
-    });
-    rowsOut.sort((a,b) => (b[9]||-9e9) - (a[9]||-9e9));
-    const header = ["Modulo","Linea","Cant_productos","Meses_activo","Producto_principal","SAP_principal","UF_modulo","UF_periodo_actual","UF_periodo_anterior","Score_YoY","Semaforo"];
-    downloadCsv(`efectividad_modulo_${timestamp()}.csv`, buildCsv(header, rowsOut));
-    return;
-  }
-
-  if (what === "productos") {
-    const byProd = {};
-    rows.forEach(r => {
-      const k = r.s || r.pr;
-      if (!byProd[k]) byProd[k] = { s: r.s, p: r.p || r.pr, pr: r.pr, l: r.l, sg: r.sg, uf: 0, ventas: 0, nMod: new Set(), riesgo: 0 };
-      byProd[k].uf += r.uf;
-      if (r.vn) byProd[k].ventas += r.vn;
-      if (r.mc !== "SIN_MODULO") byProd[k].nMod.add(r.m);
-      if (r.rg === 1) byProd[k].riesgo = 1;
-    });
-    const rowsOut = Object.values(byProd).map(p => {
-      const totAct = p.s ? sapTotalInRange(p.s, md, mh) : p.uf;
-      const totAnt = p.s ? sapTotalInRange(p.s, mdYoY, mhYoY) : 0;
-      const yoy = totAnt >= minBase ? (totAct - totAnt) / totAnt : null;
-      const mix = p.ventas > 0 ? p.uf / p.ventas : null;
-      return [p.s||"", p.p, p.pr||"", p.l, p.sg, p.nMod.size, p.uf, p.ventas, mix===null?"":mix, yoy===null?"":yoy, p.riesgo];
-    });
-    rowsOut.sort((a,b) => b[6] - a[6]);
-    const header = ["SAP","Producto","Presentacion","Linea","Segmentacion","Num_modulos","UF_transfer","Ventas_totales","Pct_via_Transfer","Var_YoY","En_riesgo"];
-    downloadCsv(`productos_${timestamp()}.csv`, buildCsv(header, rowsOut));
-    return;
-  }
+  if (what === "efectividad") { S.tab = "efectividad"; renderEfectividad(rows); exportVistaActual(); return; }
+  if (what === "productos") { S.tab = "productos"; renderProductos(rows); exportVistaActual(); return; }
 }
-
 document.getElementById("btnExport").addEventListener("click", e => {
   e.stopPropagation();
   document.getElementById("expMenu").classList.toggle("open");
