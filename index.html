@@ -397,8 +397,6 @@ function renderEfectividad(rows) {
     <th class="sortable" data-col="nc">#P</th>
     <th class="sortable" data-col="mesesActivos">Meses</th>
     <th>Productos del módulo</th>
-    <th class="sortable" data-col="tractorProd">Tractor</th>
-    <th class="sortable" data-col="traccionadoProd">Traccionado</th>
     <th class="sortable" data-col="ufTotal">UF Transfer</th>
     <th class="sortable" data-col="pctTransfer">% del Transfer</th>
     <th class="sortable" data-col="ventasTotal">Ventas Totales</th>
@@ -415,9 +413,7 @@ function renderEfectividad(rows) {
       <td><span class="tag">${m.linea}</span></td>
       <td>${m.nc}</td>
       <td>${m.mesesActivos}</td>
-      <td style="font-size:10.5px;line-height:1.35;color:#555;max-width:220px">${listaHtml}</td>
-      <td style="font-size:11px;color:#1a3a52">${m.tractorProd || '<span class="muted">—</span>'}</td>
-      <td style="font-size:11px;color:#b3261e;font-weight:600">${m.traccionadoProd || '<span class="muted">—</span>'}</td>
+      <td style="font-size:10.5px;line-height:1.35;color:#555;max-width:240px">${listaHtml}</td>
       <td>${fmt(m.ufTotal)}</td>
       <td>${(m.pctTransfer*100).toFixed(1)}%</td>
       <td>${m.ventasTotal > 0 ? fmt(m.ventasTotal) : '<span class="muted">—</span>'}</td>
