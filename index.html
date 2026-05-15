@@ -193,6 +193,27 @@ function sapTotalInRange(sap, mdFrom, mdTo) {
   return s;
 }
 
+// Mapping ventas por (SAP, mes) — derivado de las filas del dataset
+const VENTAS_SAP_MES = {};
+DATA.rows.forEach(r => {
+  if (r.s && r.vn != null && r.vn > 0) {
+    const k = r.s + '_' + r.mes;
+    if (!(k in VENTAS_SAP_MES)) VENTAS_SAP_MES[k] = r.vn;
+  }
+});
+function ventasSapInRange(sap, mdFrom, mdTo) {
+  let total = 0;
+  let y = Math.floor(mdFrom/100), mm = mdFrom%100;
+  let cur = y*100+mm;
+  while (cur <= mdTo) {
+    const k = sap + '_' + cur;
+    if (VENTAS_SAP_MES[k]) total += VENTAS_SAP_MES[k];
+    mm++; if (mm > 12) { mm = 1; y++; }
+    cur = y*100 + mm;
+  }
+  return total;
+}
+
 const S = { tab: "efectividad", sortCol: null, sortDir: "desc", selected: null, lastView: { header: [], rows: [] } };
 
 function uniq(arr) { return [...new Set(arr)].filter(Boolean).sort(); }
@@ -288,13 +309,15 @@ function renderEfectividad(rows) {
   const arr = Object.values(byMod).map(mod => {
     const prodArr = Object.values(mod.products);
     let sumUp = 0, sumW = 0, nProdValid = 0, nProdPos = 0, ufTotal = 0, ventasTotal = 0;
-    let ufActualSum = 0, ufAntSum = 0;
+    let ufActualSum = 0, ufAntSum = 0, ventasAntSum = 0;
     const prodDetails = [];
     prodArr.forEach(p => {
       const ufActual = sapTotalInRange(p.sap, md, mh);
       const ufAnt = sapTotalInRange(p.sap, mdYoY, mhYoY);
+      const ventasAnt = ventasSapInRange(p.sap, mdYoY, mhYoY);
       ufActualSum += ufActual;
       ufAntSum += ufAnt;
+      ventasAntSum += ventasAnt;
       let uplift = null;
       if (ufAnt >= minBase) {
         uplift = (ufActual - ufAnt) / ufAnt;
@@ -305,39 +328,52 @@ function renderEfectividad(rows) {
       }
       ufTotal += p.uf;
       ventasTotal += p.ventas;
-      prodDetails.push({ ...p, ufActual, ufAnt, uplift });
+      prodDetails.push({ ...p, ufActual, ufAnt, ventasAnt, uplift });
     });
     const score = sumW > 0 ? sumUp / sumW : null;
     const principal = prodArr.slice().sort((a,b) => b.uf - a.uf)[0];
+    // Score numérico para ordenar Semáforo: verde=3 > amarillo=2 > rojo=1 > gris=0
+    let semScore;
+    const sc = semaforoClase(score);
+    if (sc === 'verde') semScore = 3;
+    else if (sc === 'amarillo') semScore = 2;
+    else if (sc === 'rojo') semScore = 1;
+    else semScore = 0;
     return {
       m: mod.m, linea: mod.linea, nc: mod.nc,
       nProd: prodArr.length, nProdValid, nProdPos,
       mesesActivos: mod.mesesActivos.size,
-      ufTotal, ventasTotal, score,
-      ufActualSum, ufAntSum,
+      ufTotal, ventasTotal, score, semScore,
+      ufActualSum, ufAntSum, ventasAntSum,
       principal: principal ? principal.prod : "",
       principalSap: principal ? principal.sap : "",
       prodDetails
     };
   });
 
+  // % del Transfer: cada módulo sobre el total visible
+  const totalUF = arr.reduce((s, x) => s + x.ufTotal, 0);
+  arr.forEach(m => { m.pctTransfer = totalUF > 0 ? m.ufTotal / totalUF : 0; });
+
   sortArr(arr, S.sortCol || "ufTotal", S.sortDir);
 
   S.lastView = {
     name: "efectividad",
-    header: ["Modulo","Linea","Productos","Meses_activo","Producto_principal","SAP_principal","UF_modulo","Ventas_totales","UF_periodo_actual","UF_periodo_anterior","Semaforo","Prods_creciendo","Prods_evaluables"],
-    rows: arr.map(m => [m.m, m.linea, m.nc, m.mesesActivos, m.principal, m.principalSap, m.ufTotal, m.ventasTotal, m.ufActualSum, m.ufAntSum, semaforoClase(m.score).toUpperCase(), m.nProdPos, m.nProdValid])
+    header: ["Modulo","Linea","Productos","Meses_activo","Producto_principal","SAP_principal","UF_modulo","Pct_del_Transfer","Ventas_totales","Ventas_periodo_anterior","UF_periodo_anterior","Semaforo","Prods_creciendo","Prods_evaluables"],
+    rows: arr.map(m => [m.m, m.linea, m.nc, m.mesesActivos, m.principal, m.principalSap, m.ufTotal, (m.pctTransfer*100).toFixed(2)+"%", m.ventasTotal, m.ventasAntSum, m.ufAntSum, semaforoClase(m.score).toUpperCase(), m.nProdPos, m.nProdValid])
   };
 
   document.getElementById("thead").innerHTML = `<tr>
-    <th>Semáforo</th>
+    <th class="sortable" data-col="semScore">Semáforo</th>
     <th class="sortable" data-col="m">Módulo</th>
     <th class="sortable" data-col="linea">Línea</th>
     <th class="sortable" data-col="nc">#P</th>
-    <th class="sortable" data-col="mesesActivos">Meses activo</th>
+    <th class="sortable" data-col="mesesActivos">Meses</th>
     <th class="sortable" data-col="principal">Producto principal</th>
     <th class="sortable" data-col="ufTotal">UF Transfer</th>
+    <th class="sortable" data-col="pctTransfer">% del Transfer</th>
     <th class="sortable" data-col="ventasTotal">Ventas Totales</th>
+    <th class="sortable" data-col="ventasAntSum">Ventas período anterior</th>
     <th class="sortable" data-col="ufAntSum">UF período anterior</th>
     <th class="sortable" data-col="nProdPos">Prods creciendo</th>
   </tr>`;
@@ -351,7 +387,9 @@ function renderEfectividad(rows) {
       <td>${m.mesesActivos}</td>
       <td>${m.principal}</td>
       <td>${fmt(m.ufTotal)}</td>
+      <td>${(m.pctTransfer*100).toFixed(1)}%</td>
       <td>${m.ventasTotal > 0 ? fmt(m.ventasTotal) : '<span class="muted">—</span>'}</td>
+      <td>${m.ventasAntSum > 0 ? fmt(m.ventasAntSum) : '<span class="tag" style="background:#e1efff;color:#1a3a52">Nuevo</span>'}</td>
       <td>${m.ufAntSum > 0 ? fmt(m.ufAntSum) : '<span class="tag" style="background:#e1efff;color:#1a3a52">Nuevo</span>'}</td>
       <td>${m.nProdPos} / ${m.nProdValid}</td>
     </tr>`;
