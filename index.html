@@ -414,11 +414,10 @@ function renderCombos(rows) {
       sumAct += sapTotalInRange(sap, md, mh);
       sumAnt += sapTotalInRange(sap, mdYoY, mhYoY);
     });
-    const yoy = sumAnt >= minBase ? (sumAct - sumAnt) / sumAnt : null;
     return {
       id, uf: d.uf, ventas: d.ventas, mesesActivos: d.mesesActivos.size, nc: d.nc,
       modulos: [...d.modulos].join(", "), prods: [...d.prods].join(" · "),
-      linea: d.linea, yoy,
+      linea: d.linea, ufAnt: sumAnt,
       prodDetails: Object.values(d.prodDetails)
     };
   });
@@ -426,8 +425,8 @@ function renderCombos(rows) {
 
   S.lastView = {
     name: "combos",
-    header: ["ComboID","Productos","Linea","Cant_productos","UF_transfer","Ventas_totales","Var_YoY","Meses_vigencia","Modulos_usados"],
-    rows: arr.map(c => [c.id, c.prods, c.linea, c.nc, c.uf, c.ventas, c.yoy===null?"":c.yoy, c.mesesActivos, c.modulos])
+    header: ["ComboID","Productos","Linea","Cant_productos","UF_transfer","Ventas_totales","UF_periodo_anterior","Meses_vigencia","Modulos_usados"],
+    rows: arr.map(c => [c.id, c.prods, c.linea, c.nc, c.uf, c.ventas, c.ufAnt, c.mesesActivos, c.modulos])
   };
 
   document.getElementById("thead").innerHTML = `<tr>
@@ -437,7 +436,7 @@ function renderCombos(rows) {
     <th class="sortable" data-col="nc">#P</th>
     <th class="sortable" data-col="uf">UF Transfer</th>
     <th class="sortable" data-col="ventas">Ventas Totales</th>
-    <th class="sortable" data-col="yoy">Var% YoY agr.</th>
+    <th class="sortable" data-col="ufAnt">UF período anterior</th>
     <th class="sortable" data-col="mesesActivos">Meses</th>
   </tr>`;
   document.getElementById("tbody").innerHTML = arr.slice(0, 200).map(c =>
@@ -448,7 +447,7 @@ function renderCombos(rows) {
       <td>${c.nc}</td>
       <td>${fmt(c.uf)}</td>
       <td>${c.ventas > 0 ? fmt(c.ventas) : '<span class="muted">—</span>'}</td>
-      <td class="${pctClass(c.yoy)}">${pctCap(c.yoy)}</td>
+      <td>${c.ufAnt > 0 ? fmt(c.ufAnt) : '<span class="tag" style="background:#e1efff;color:#1a3a52">Nuevo</span>'}</td>
       <td>${c.mesesActivos}</td>
     </tr>`).join("");
   document.querySelectorAll(".combo-row").forEach(tr => tr.addEventListener("click", () => {
@@ -467,7 +466,7 @@ function renderComboDetail(arr, comboId) {
     <div class="detail-header">
       <div class="info">
         <h3>Combo: ${c.id}</h3>
-        <div class="meta">Línea <strong>${c.linea}</strong> · ${c.nc} productos · ${c.mesesActivos} meses vigente · YoY <strong>${pctCap(c.yoy)}</strong></div>
+        <div class="meta">Línea <strong>${c.linea}</strong> · ${c.nc} productos · ${c.mesesActivos} meses vigente · UF período anterior <strong>${c.ufAnt > 0 ? fmt(c.ufAnt) : 'Nuevo combo'}</strong></div>
         <div class="meta" style="margin-top:6px">Usado en módulos: <span class="muted">${c.modulos}</span></div>
       </div>
     </div>
