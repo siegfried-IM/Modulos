@@ -393,8 +393,8 @@ function renderEfectividad(rows) {
       <td>${fmt(m.ufTotal)}</td>
       <td>${(m.pctTransfer*100).toFixed(1)}%</td>
       <td>${m.ventasTotal > 0 ? fmt(m.ventasTotal) : '<span class="muted">—</span>'}</td>
-      <td>${m.ventasAntSum > 0 ? fmt(m.ventasAntSum) : '<span class="tag" style="background:#e1efff;color:#1a3a52">Nuevo</span>'}</td>
-      <td>${m.ufAntSum > 0 ? fmt(m.ufAntSum) : '<span class="tag" style="background:#e1efff;color:#1a3a52">Nuevo</span>'}</td>
+      <td>${m.ventasAntSum > 0 ? fmt(m.ventasAntSum) : '<span class="muted">0</span>'}</td>
+      <td>${m.ufAntSum > 0 ? fmt(m.ufAntSum) : '<span class="muted">0</span>'}</td>
       <td>${m.nProdPos} / ${m.nProdValid}</td>
     </tr>`;
   }).join("");
@@ -493,7 +493,7 @@ function renderCombos(rows) {
       <td>${c.nc}</td>
       <td>${fmt(c.uf)}</td>
       <td>${c.ventas > 0 ? fmt(c.ventas) : '<span class="muted">—</span>'}</td>
-      <td>${c.ufAnt > 0 ? fmt(c.ufAnt) : '<span class="tag" style="background:#e1efff;color:#1a3a52">Nuevo</span>'}</td>
+      <td>${c.ufAnt > 0 ? fmt(c.ufAnt) : '<span class="muted">0</span>'}</td>
       <td>${c.mesesActivos}</td>
     </tr>`).join("");
   document.querySelectorAll(".combo-row").forEach(tr => tr.addEventListener("click", () => {
