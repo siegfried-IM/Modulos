@@ -288,10 +288,13 @@ function renderEfectividad(rows) {
   const arr = Object.values(byMod).map(mod => {
     const prodArr = Object.values(mod.products);
     let sumUp = 0, sumW = 0, nProdValid = 0, nProdPos = 0, ufTotal = 0, ventasTotal = 0;
+    let ufActualSum = 0, ufAntSum = 0;
     const prodDetails = [];
     prodArr.forEach(p => {
       const ufActual = sapTotalInRange(p.sap, md, mh);
       const ufAnt = sapTotalInRange(p.sap, mdYoY, mhYoY);
+      ufActualSum += ufActual;
+      ufAntSum += ufAnt;
       let uplift = null;
       if (ufAnt >= minBase) {
         uplift = (ufActual - ufAnt) / ufAnt;
@@ -311,18 +314,19 @@ function renderEfectividad(rows) {
       nProd: prodArr.length, nProdValid, nProdPos,
       mesesActivos: mod.mesesActivos.size,
       ufTotal, ventasTotal, score,
+      ufActualSum, ufAntSum,
       principal: principal ? principal.prod : "",
       principalSap: principal ? principal.sap : "",
       prodDetails
     };
   });
 
-  sortArr(arr, S.sortCol || "score", S.sortDir);
+  sortArr(arr, S.sortCol || "ufTotal", S.sortDir);
 
   S.lastView = {
     name: "efectividad",
-    header: ["Modulo","Linea","Productos","Meses_activo","Producto_principal","SAP_principal","UF_modulo","Ventas_totales","Score_YoY","Semaforo","Prods_creciendo","Prods_evaluables"],
-    rows: arr.map(m => [m.m, m.linea, m.nc, m.mesesActivos, m.principal, m.principalSap, m.ufTotal, m.ventasTotal, m.score===null?"":m.score, semaforoClase(m.score).toUpperCase(), m.nProdPos, m.nProdValid])
+    header: ["Modulo","Linea","Productos","Meses_activo","Producto_principal","SAP_principal","UF_modulo","Ventas_totales","UF_periodo_actual","UF_periodo_anterior","Semaforo","Prods_creciendo","Prods_evaluables"],
+    rows: arr.map(m => [m.m, m.linea, m.nc, m.mesesActivos, m.principal, m.principalSap, m.ufTotal, m.ventasTotal, m.ufActualSum, m.ufAntSum, semaforoClase(m.score).toUpperCase(), m.nProdPos, m.nProdValid])
   };
 
   document.getElementById("thead").innerHTML = `<tr>
@@ -334,7 +338,7 @@ function renderEfectividad(rows) {
     <th class="sortable" data-col="principal">Producto principal</th>
     <th class="sortable" data-col="ufTotal">UF Transfer</th>
     <th class="sortable" data-col="ventasTotal">Ventas Totales</th>
-    <th class="sortable" data-col="score">Uplift vs año ant.</th>
+    <th class="sortable" data-col="ufAntSum">UF período anterior</th>
     <th class="sortable" data-col="nProdPos">Prods creciendo</th>
   </tr>`;
   document.getElementById("tbody").innerHTML = arr.map(m => {
@@ -348,7 +352,7 @@ function renderEfectividad(rows) {
       <td>${m.principal}</td>
       <td>${fmt(m.ufTotal)}</td>
       <td>${m.ventasTotal > 0 ? fmt(m.ventasTotal) : '<span class="muted">—</span>'}</td>
-      <td class="${pctClass(m.score)}">${pctCap(m.score)}</td>
+      <td>${m.ufAntSum > 0 ? fmt(m.ufAntSum) : '<span class="tag" style="background:#e1efff;color:#1a3a52">Nuevo</span>'}</td>
       <td>${m.nProdPos} / ${m.nProdValid}</td>
     </tr>`;
   }).join("");
@@ -368,7 +372,7 @@ function renderModuloDetail(modArr, modKey) {
     <div class="detail-header">
       <div class="info">
         <h3>${mod.m}</h3>
-        <div class="meta">Línea <strong>${mod.linea}</strong> · ${mod.nProd} productos · ${mod.mesesActivos} meses activo · Score <strong>${pctCap(mod.score)}</strong></div>
+        <div class="meta">Línea <strong>${mod.linea}</strong> · ${mod.nProd} productos · ${mod.mesesActivos} meses activo · UF período anterior <strong>${mod.ufAntSum > 0 ? fmt(mod.ufAntSum) : 'Sin histórico'}</strong></div>
       </div>
       <div class="chart-box">
         ${sparkBigSvg(mod.principalSap)}
