@@ -398,10 +398,10 @@ function renderEfectividad(rows) {
     <th class="sortable" data-col="mesesActivos">Meses</th>
     <th>Productos del módulo</th>
     <th class="sortable" data-col="ufTotal">UF Transfer</th>
-    <th class="sortable" data-col="pctTransfer">% del Transfer</th>
+    <th class="sortable" data-col="ufAntSum">UF período anterior</th>
     <th class="sortable" data-col="ventasTotal">Ventas Totales</th>
     <th class="sortable" data-col="ventasAntSum">Ventas período anterior</th>
-    <th class="sortable" data-col="ufAntSum">UF período anterior</th>
+    <th class="sortable" data-col="pctTransfer">% del Transfer</th>
     <th class="sortable" data-col="nProdPos">Prods creciendo</th>
   </tr>`;
   document.getElementById("tbody").innerHTML = arr.map(m => {
@@ -415,10 +415,10 @@ function renderEfectividad(rows) {
       <td>${m.mesesActivos}</td>
       <td style="font-size:10.5px;line-height:1.35;color:#555;max-width:240px">${listaHtml}</td>
       <td>${fmt(m.ufTotal)}</td>
-      <td>${(m.pctTransfer*100).toFixed(1)}%</td>
+      <td>${m.ufAntSum > 0 ? fmt(m.ufAntSum) : '<span class="muted">0</span>'}</td>
       <td>${m.ventasTotal > 0 ? fmt(m.ventasTotal) : '<span class="muted">—</span>'}</td>
       <td>${m.ventasAntSum > 0 ? fmt(m.ventasAntSum) : '<span class="muted">0</span>'}</td>
-      <td>${m.ufAntSum > 0 ? fmt(m.ufAntSum) : '<span class="muted">0</span>'}</td>
+      <td>${(m.pctTransfer*100).toFixed(1)}%</td>
       <td>${m.nProdPos} / ${m.nProdValid}</td>
     </tr>`;
   }).join("");
@@ -511,10 +511,10 @@ function renderCombos(rows) {
     <th class="sortable" data-col="nc">#P</th>
     <th class="sortable" data-col="mesesActivos">Meses</th>
     <th class="sortable" data-col="uf">UF Transfer</th>
-    <th class="sortable" data-col="pctTransfer">% del Transfer</th>
+    <th class="sortable" data-col="ufAnt">UF período anterior</th>
     <th class="sortable" data-col="ventas">Ventas Totales</th>
     <th class="sortable" data-col="ventasAntSum">Ventas período anterior</th>
-    <th class="sortable" data-col="ufAnt">UF período anterior</th>
+    <th class="sortable" data-col="pctTransfer">% del Transfer</th>
   </tr>`;
   document.getElementById("tbody").innerHTML = arr.slice(0, 200).map(c => {
     const prodsHtml = c.prods.split(" · ").map(p => `<div>${p}</div>`).join("");
@@ -525,10 +525,10 @@ function renderCombos(rows) {
       <td>${c.nc}</td>
       <td>${c.mesesActivos}</td>
       <td>${fmt(c.uf)}</td>
-      <td>${(c.pctTransfer*100).toFixed(1)}%</td>
+      <td>${c.ufAnt > 0 ? fmt(c.ufAnt) : '<span class="muted">0</span>'}</td>
       <td>${c.ventas > 0 ? fmt(c.ventas) : '<span class="muted">—</span>'}</td>
       <td>${c.ventasAntSum > 0 ? fmt(c.ventasAntSum) : '<span class="muted">0</span>'}</td>
-      <td>${c.ufAnt > 0 ? fmt(c.ufAnt) : '<span class="muted">0</span>'}</td>
+      <td>${(c.pctTransfer*100).toFixed(1)}%</td>
     </tr>`;
   }).join("");
   document.querySelectorAll(".combo-row").forEach(tr => tr.addEventListener("click", () => {
