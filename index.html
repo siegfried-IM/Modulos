@@ -339,6 +339,8 @@ function renderEfectividad(rows) {
     else if (sc === 'amarillo') semScore = 2;
     else if (sc === 'rojo') semScore = 1;
     else semScore = 0;
+    // Lista de productos del módulo, ordenados por UF desc
+    const productosLista = prodArr.slice().sort((a,b) => b.uf - a.uf).map(p => p.prod).join("\n");
     return {
       m: mod.m, linea: mod.linea, nc: mod.nc,
       nProd: prodArr.length, nProdValid, nProdPos,
@@ -347,6 +349,7 @@ function renderEfectividad(rows) {
       ufActualSum, ufAntSum, ventasAntSum,
       principal: principal ? principal.prod : "",
       principalSap: principal ? principal.sap : "",
+      productosLista,
       prodDetails
     };
   });
@@ -359,8 +362,8 @@ function renderEfectividad(rows) {
 
   S.lastView = {
     name: "efectividad",
-    header: ["Modulo","Linea","Productos","Meses_activo","Producto_principal","SAP_principal","UF_modulo","Pct_del_Transfer","Ventas_totales","Ventas_periodo_anterior","UF_periodo_anterior","Semaforo","Prods_creciendo","Prods_evaluables"],
-    rows: arr.map(m => [m.m, m.linea, m.nc, m.mesesActivos, m.principal, m.principalSap, m.ufTotal, (m.pctTransfer*100).toFixed(2)+"%", m.ventasTotal, m.ventasAntSum, m.ufAntSum, semaforoClase(m.score).toUpperCase(), m.nProdPos, m.nProdValid])
+    header: ["Modulo","Linea","Productos","Meses_activo","Productos_del_modulo","UF_modulo","Pct_del_Transfer","Ventas_totales","Ventas_periodo_anterior","UF_periodo_anterior","Semaforo","Prods_creciendo","Prods_evaluables"],
+    rows: arr.map(m => [m.m, m.linea, m.nc, m.mesesActivos, m.productosLista.replace(/\n/g, " · "), m.ufTotal, (m.pctTransfer*100).toFixed(2)+"%", m.ventasTotal, m.ventasAntSum, m.ufAntSum, semaforoClase(m.score).toUpperCase(), m.nProdPos, m.nProdValid])
   };
 
   document.getElementById("thead").innerHTML = `<tr>
@@ -369,7 +372,7 @@ function renderEfectividad(rows) {
     <th class="sortable" data-col="linea">Línea</th>
     <th class="sortable" data-col="nc">#P</th>
     <th class="sortable" data-col="mesesActivos">Meses</th>
-    <th class="sortable" data-col="principal">Producto principal</th>
+    <th>Productos del módulo</th>
     <th class="sortable" data-col="ufTotal">UF Transfer</th>
     <th class="sortable" data-col="pctTransfer">% del Transfer</th>
     <th class="sortable" data-col="ventasTotal">Ventas Totales</th>
@@ -379,13 +382,14 @@ function renderEfectividad(rows) {
   </tr>`;
   document.getElementById("tbody").innerHTML = arr.map(m => {
     const clase = semaforoClase(m.score);
+    const listaHtml = m.productosLista.split("\n").map(p => p.trim()).filter(Boolean).map(p => `<div>${p}</div>`).join("");
     return `<tr class="${clase} combo-row" data-modkey="${m.m.replace(/"/g,'&quot;')}">
       <td><span class="semaforo ${clase}"></span></td>
       <td>${m.m}</td>
       <td><span class="tag">${m.linea}</span></td>
       <td>${m.nc}</td>
       <td>${m.mesesActivos}</td>
-      <td>${m.principal}</td>
+      <td style="font-size:10.5px;line-height:1.35;color:#555;max-width:240px">${listaHtml}</td>
       <td>${fmt(m.ufTotal)}</td>
       <td>${(m.pctTransfer*100).toFixed(1)}%</td>
       <td>${m.ventasTotal > 0 ? fmt(m.ventasTotal) : '<span class="muted">—</span>'}</td>
