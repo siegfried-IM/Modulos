@@ -118,6 +118,7 @@ svg.spark-big { display: block; }
     <div class="ctrl"><label>Línea</label><select id="fLinea"></select></div>
     <div class="ctrl"><label>Mes desde</label><select id="fMesDesde"></select></div>
     <div class="ctrl"><label>Mes hasta</label><select id="fMesHasta"></select></div>
+    <div class="ctrl"><label>Módulo</label><select id="fModulo"></select></div>
     <div class="ctrl"><label>Tipo Objetivo</label><select id="fTipo"><option value="">Todos</option><option value="Modulo">Módulo</option><option value="Sin_Modulo">Sin Módulo</option></select></div>
     <div class="ctrl"><label>Buscar Producto</label><input id="fProd" placeholder="ej: PALDAR"></div>
     <div class="ctrl"><label>Base mínima (uds)</label><input id="fBase" type="number" value="50" min="0"></div>
@@ -261,8 +262,14 @@ function uniq(arr) { return [...new Set(arr)].filter(Boolean).sort(); }
 
 const lineas = uniq(DATA.rows.map(r => r.l));
 const meses = uniq(DATA.rows.map(r => r.mes));
+const modulos = uniq(DATA.rows.filter(r => r.mc !== "SIN_MODULO").map(r => r.m));
 
 document.getElementById("fLinea").innerHTML = '<option value="">Todas</option>' + lineas.map(v => `<option value="${v}">${v}</option>`).join("");
+document.getElementById("fModulo").innerHTML = '<option value="">Todos</option>' + modulos.map(v => {
+  const alias = DICC_ALIAS[v];
+  const label = alias ? `${v} — ${alias}` : v;
+  return `<option value="${v}">${label}</option>`;
+}).join("");
 const mesDesde = document.getElementById("fMesDesde");
 const mesHasta = document.getElementById("fMesHasta");
 meses.forEach(v => {
@@ -276,10 +283,12 @@ function filtered() {
   const l = document.getElementById("fLinea").value;
   const md = +document.getElementById("fMesDesde").value;
   const mh = +document.getElementById("fMesHasta").value;
+  const mod = document.getElementById("fModulo").value;
   const t = document.getElementById("fTipo").value;
   const q = document.getElementById("fProd").value.trim().toUpperCase();
   return DATA.rows.filter(r =>
     (!l || r.l === l) && r.mes >= md && r.mes <= mh &&
+    (!mod || r.m === mod) &&
     (!t || r.t === t) &&
     (!q || (r.pr && r.pr.toUpperCase().includes(q)) || (r.p && r.p.toUpperCase().includes(q)))
   );
@@ -742,7 +751,7 @@ function render() {
   else if (S.tab === "productos") renderProductos(rows);
 }
 
-["fLinea","fMesDesde","fMesHasta","fTipo","fBase"].forEach(id => document.getElementById(id).addEventListener("change", render));
+["fLinea","fMesDesde","fMesHasta","fModulo","fTipo","fBase"].forEach(id => document.getElementById(id).addEventListener("change", render));
 document.getElementById("fProd").addEventListener("input", render);
 document.getElementById("fBase").addEventListener("input", render);
 
