@@ -69,10 +69,11 @@ tr.rojo td { background: #fff0f0; }
 .note { font-size: 12px; color: #666; margin: 8px 0; padding: 8px 12px; background: #fff9e6; border-left: 3px solid #f0b400; border-radius: 4px; }
 .note.info { background: #fdebed; border-left-color: #95232C; color: #95232C; }
 svg.spark-big { display: block; }
-.metodologia { font-size: 12px; color: #333; background: #f8f9fb; padding: 14px 16px; border-radius: 6px; margin-bottom: 16px; }
-.metodologia h4 { margin: 0 0 6px; color: #95232C; font-size: 13px; }
+.metodologia { font-size: 12px; color: #222; background: #f8f9fb; padding: 14px 16px; border-radius: 6px; margin-bottom: 16px; }
+.metodologia h4 { margin: 0 0 8px; color: #222; font-size: 13px; }
 .metodologia ul { margin: 4px 0 0 18px; padding: 0; }
-.metodologia li { margin-bottom: 3px; }
+.metodologia li { margin-bottom: 4px; color: #222; }
+.metodologia li b { color: #000; }
 .export-menu { position: absolute; top: 100%; right: 0; margin-top: 4px; background: white; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 220px; z-index: 20; overflow: hidden; display: none; }
 .export-menu.open { display: block; }
 .export-menu .item { padding: 10px 14px; cursor: pointer; color: #222; font-size: 13px; display: block; border-bottom: 1px solid #eee; }
@@ -330,9 +331,13 @@ function renderEfectividad(rows) {
     `<div class="metodologia">
       <h4>¿Qué módulo funciona mejor? — Metodología</h4>
       <ul>
-        <li><b>Uplift del producto</b> = UF total del producto en el período actual vs mismo período año anterior. Se excluyen productos con base &lt; ${minBase} uds.</li>
-        <li><b>Score del módulo</b> = promedio ponderado por volumen del uplift de sus productos.</li>
-        <li>Semáforo: <span class="semaforo verde"></span> crece &gt;10%&nbsp;&nbsp; <span class="semaforo amarillo"></span> plano&nbsp;&nbsp; <span class="semaforo rojo"></span> cae &gt;10%&nbsp;&nbsp; <span class="semaforo gris"></span> base insuficiente</li>
+        <li><b>UF Transfer</b> = unidades facturadas del módulo vía Transfer en el período seleccionado.</li>
+        <li><b>UF período anterior</b> = unidades facturadas del <i>mismo</i> módulo en el mismo rango de meses año anterior. Si el módulo no existía → 0 (módulo nuevo).</li>
+        <li><b>Ventas Totales</b> = ventas totales (todos los canales) de los productos del módulo en el período.</li>
+        <li><b>Ventas período anterior</b> = ventas totales de los productos que estuvieron en el módulo año anterior.</li>
+        <li><b>% del Transfer</b> = peso del módulo sobre el total de UF Transfer de los módulos visibles.</li>
+        <li><b>Prods creciendo</b> = (productos con uplift &gt; +10%) / (productos con base ≥ ${minBase} uds para evaluar).</li>
+        <li><b>Semáforo</b> según uplift promedio ponderado por volumen: <span class="semaforo verde"></span> crece &gt;10% &nbsp; <span class="semaforo amarillo"></span> plano &nbsp; <span class="semaforo rojo"></span> cae &gt;10% &nbsp; <span class="semaforo gris"></span> base insuficiente.</li>
       </ul>
     </div>`;
 
