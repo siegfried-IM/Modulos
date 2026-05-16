@@ -265,11 +265,15 @@ const meses = uniq(DATA.rows.map(r => r.mes));
 const modulos = uniq(DATA.rows.filter(r => r.mc !== "SIN_MODULO").map(r => r.m));
 
 document.getElementById("fLinea").innerHTML = '<option value="">Todas</option>' + lineas.map(v => `<option value="${v}">${v}</option>`).join("");
-document.getElementById("fModulo").innerHTML = '<option value="">Todos</option>' + modulos.map(v => {
-  const alias = DICC_ALIAS[v];
-  const label = alias ? `${v} — ${alias}` : v;
-  return `<option value="${v}">${label}</option>`;
-}).join("");
+// Solo módulos con alias del plan (denominación oficial estilo "Módulo Antibióticos I")
+// Si un módulo oficial mapea a varios planes (ej "/"), genera una entrada por cada uno
+const modOpts = [];
+Object.entries(DICC_ALIAS).forEach(([oficial, planConcat]) => {
+  planConcat.split(' / ').forEach(plan => modOpts.push({ oficial, plan: plan.trim() }));
+});
+modOpts.sort((a, b) => a.plan.localeCompare(b.plan));
+document.getElementById("fModulo").innerHTML = '<option value="">Todos</option>' +
+  modOpts.map(m => `<option value="${m.oficial}">${m.plan}</option>`).join("");
 const mesDesde = document.getElementById("fMesDesde");
 const mesHasta = document.getElementById("fMesHasta");
 meses.forEach(v => {
