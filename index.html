@@ -171,6 +171,7 @@ svg.spark-big { display: block; }
     <button class="tab primary active" data-tab="efectividad">Efectividad por Módulo</button>
     <button class="tab" data-tab="combos">Ranking de Combos</button>
     <button class="tab" data-tab="productos">Productos &middot; Tendencia</button>
+    <button class="tab" data-tab="resumen">Resumen Transfer</button>
   </div>
 
   <div class="panel">
@@ -790,12 +791,78 @@ function renderProductoDetail(rows, sap) {
   document.getElementById("detailContent").innerHTML = detailHtml;
 }
 
+// ===== RESUMEN TRANSFER =====
+function renderResumen(rows) {
+  // Desglose por tipo de actividad (Módulos / Sin módulo (-) / Sin ModuloNova / Totales)
+  let ufMod = 0, ufDash = 0, ufSinMod = 0, ufOtros = 0;
+  let vMod = 0, vDash = 0, vSinMod = 0, vOtros = 0;
+  rows.forEach(r => {
+    const uf = r.uf || 0; const v = r.vn || 0;
+    if (r.mc !== "SIN_MODULO") { ufMod += uf; vMod += v; }
+    else if (r.m === "-") { ufDash += uf; vDash += v; }
+    else if (r.m && r.m.indexOf("Sin Modulo") === 0) { ufSinMod += uf; vSinMod += v; }
+    else { ufOtros += uf; vOtros += v; }
+  });
+  const ufTotal = ufMod + ufDash + ufSinMod + ufOtros;
+  const pct = x => ufTotal > 0 ? (x/ufTotal*100).toFixed(1) + "%" : "—";
+
+  // Top productos sueltos (NO en módulo) — candidatos a nuevos módulos
+  const sueltos = {};
+  rows.filter(r => r.mc === "SIN_MODULO" && r.s).forEach(r => {
+    if (!sueltos[r.s]) sueltos[r.s] = { s: r.s, p: r.p, pr: r.pr, l: r.l, uf: 0, ventas: 0 };
+    sueltos[r.s].uf += r.uf;
+    if (r.vn) sueltos[r.s].ventas += r.vn;
+  });
+  const sueltosArr = Object.values(sueltos).sort((a,b) => b.uf - a.uf);
+
+  document.getElementById("noteArea").innerHTML =
+    `<div class="metodologia">
+      <h4>Resumen Transfer del período — composición</h4>
+      <ul>
+        <li><b>Módulo</b>: el producto se vende como parte de un combo estratégico (con módulo asignado).</li>
+        <li><b>Suelto "-"</b>: venta Transfer sin asignación a módulo (productos sueltos con descuento).</li>
+        <li><b>Sin Modulo Nova</b>: venta Transfer en otro canal (Nova Argentia).</li>
+        <li>Esta vista te ayuda a identificar productos que mueven volumen <i>fuera</i> de módulos y son candidatos para módulos nuevos.</li>
+      </ul>
+    </div>`;
+
+  document.getElementById("thead").innerHTML = `<tr>
+    <th colspan="6" style="background:#95232C;color:white;font-size:14px;text-align:center;padding:12px">Composición del Transfer en el período</th>
+  </tr><tr>
+    <th>Categoría</th><th>UF Transfer</th><th>% del total</th><th>Ventas Totales</th><th>Productos</th><th>Observación</th>
+  </tr>`;
+  const nProdMod = new Set(rows.filter(r => r.mc !== "SIN_MODULO" && r.s).map(r => r.s)).size;
+  const nProdDash = new Set(rows.filter(r => r.m === "-" && r.s).map(r => r.s)).size;
+  const nProdSinMod = new Set(rows.filter(r => r.m && r.m.indexOf("Sin Modulo") === 0 && r.s).map(r => r.s)).size;
+
+  document.getElementById("tbody").innerHTML = `
+    <tr style="background:#f0fbf1"><td><strong>📦 Módulos estratégicos</strong></td><td>${fmt(ufMod)}</td><td><strong>${pct(ufMod)}</strong></td><td>${fmt(vMod)}</td><td>${nProdMod}</td><td class="muted">Combos planificados</td></tr>
+    <tr style="background:#fffce6"><td><strong>📋 Suelto (sin asignación)</strong></td><td>${fmt(ufDash)}</td><td><strong>${pct(ufDash)}</strong></td><td>${fmt(vDash)}</td><td>${nProdDash}</td><td class="muted">Candidatos a módulo</td></tr>
+    <tr style="background:#fff0f0"><td><strong>🏷 Sin Modulo Nova</strong></td><td>${fmt(ufSinMod)}</td><td><strong>${pct(ufSinMod)}</strong></td><td>${fmt(vSinMod)}</td><td>${nProdSinMod}</td><td class="muted">Canal Nova Argentia</td></tr>
+    <tr style="background:#f8f9fb;font-weight:600"><td>TOTAL Transfer</td><td>${fmt(ufTotal)}</td><td>100%</td><td>${fmt(vMod+vDash+vSinMod+vOtros)}</td><td>${new Set(rows.filter(r=>r.s).map(r=>r.s)).size}</td><td></td></tr>
+    <tr><td colspan="6" style="background:#95232C;color:white;font-size:13px;text-align:center;padding:10px"><strong>🎯 Top 50 productos SUELTOS</strong> — candidatos a entrar a un módulo</td></tr>
+    <tr style="font-weight:600;background:#f0f2f5"><td>Producto</td><td>UF Transfer (suelto)</td><td>Ventas Totales</td><td>Mix Transfer</td><td>Línea</td><td>SAP</td></tr>
+    ${sueltosArr.slice(0, 50).map(p => {
+      const mix = p.ventas > 0 ? (p.uf/p.ventas*100).toFixed(0)+"%" : "—";
+      return `<tr><td><strong>${p.p}</strong><div class="muted" style="font-size:11px">${p.pr||""}</div></td><td>${fmt(p.uf)}</td><td>${p.ventas>0?fmt(p.ventas):'<span class="muted">—</span>'}</td><td>${mix}</td><td><span class="tag">${p.l}</span></td><td class="muted">${p.s}</td></tr>`;
+    }).join("")}
+  `;
+
+  S.lastView = {
+    name: "resumen_transfer",
+    header: ["Producto","SAP","Linea","UF_suelto","Ventas_Totales","Mix_Transfer_pct"],
+    rows: sueltosArr.map(p => [p.p, p.s, p.l, p.uf, p.ventas, p.ventas>0?(p.uf/p.ventas):""])
+  };
+  document.getElementById("detailPanel").classList.remove("show");
+}
+
 function render() {
   const rows = filtered();
   renderKpis(rows);
   if (S.tab === "efectividad") renderEfectividad(rows);
   else if (S.tab === "combos") renderCombos(rows);
   else if (S.tab === "productos") renderProductos(rows);
+  else if (S.tab === "resumen") renderResumen(rows);
 }
 
 ["fLinea","fMesDesde","fMesHasta","fModulo","fTipo","fBase"].forEach(id => document.getElementById(id).addEventListener("change", render));
