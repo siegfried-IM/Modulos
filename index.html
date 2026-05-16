@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
 <title>Módulos Comercial · Siegfried</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
@@ -90,6 +91,48 @@ svg.spark-big { display: block; }
 .shares-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .shares-list .chip { background: white; border: 1px solid #d0d4db; border-radius: 14px; padding: 3px 10px; font-size: 11px; color: #95232C; }
 .shares-list .chip strong { color: #b3261e; font-weight: 600; }
+.scroll-wrap { overflow-x: auto; }
+
+/* ===== RESPONSIVE / MOBILE ===== */
+@media (max-width: 900px) {
+  main { padding: 12px 14px 32px; }
+  header { padding: 12px 16px; }
+  header .brand h1 { font-size: 17px; }
+  header .brand .sub { font-size: 11px; }
+  .btn { padding: 8px 12px; font-size: 12px; }
+  .controls { padding: 12px; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+  .ctrl select, .ctrl input { padding: 7px 8px; font-size: 13px; }
+  .ctrl label { font-size: 10px; }
+  .tabs { gap: 2px; }
+  .tab { padding: 8px 12px; font-size: 13px; }
+  .panel { padding: 14px 10px; }
+  .kpis { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .kpi { padding: 8px 10px; }
+  .kpi .value { font-size: 16px; }
+  .kpi .label { font-size: 9px; }
+  table { font-size: 11.5px; }
+  th { padding: 6px 5px; font-size: 10.5px; }
+  td { padding: 5px 5px; }
+  .tag { font-size: 10px; padding: 1px 6px; }
+  .scroll-wrap { max-height: 75vh; }
+  .metodologia { font-size: 11px; padding: 10px 12px; }
+  .detail-header { flex-direction: column; gap: 12px; }
+  .detail-header .chart-box { width: 100%; }
+  .export-menu { right: -8px; min-width: 200px; }
+  .export-menu .item { padding: 8px 10px; font-size: 12px; }
+}
+@media (max-width: 480px) {
+  header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  header .actions { align-self: stretch; }
+  header .actions .btn { width: 100%; justify-content: center; }
+  .export-wrap { width: 100%; }
+  .export-menu { right: 0; left: 0; }
+  .controls { grid-template-columns: 1fr 1fr; }
+  .kpis { grid-template-columns: 1fr 1fr; }
+  .tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 1px; }
+  .tab { white-space: nowrap; flex-shrink: 0; }
+  .kpi .tt { display: none; }
+}
 </style>
 </head>
 <body>
