@@ -693,8 +693,8 @@ function renderProductos(rows) {
 
   S.lastView = {
     name: "productos",
-    header: ["SAP","Producto","Presentacion","Linea","Segmentacion","Num_modulos","Meses_activos","Periodo_Transfer","UF_transfer","Ventas_totales","Mix_Transfer"],
-    rows: arr.map(r => [r.s||"", r.p, r.pr||"", r.l, r.sg, r.nMod, r.mesesActivos, r.periodo, r.uf, r.ventas, r.mix===null?"":r.mix])
+    header: ["SAP","Producto","Presentacion","Linea","Num_modulos","Meses_activos","Periodo_Transfer","UF_transfer","Ventas_totales","Mix_Transfer"],
+    rows: arr.map(r => [r.s||"", r.p, r.pr||"", r.l, r.nMod, r.mesesActivos, r.periodo, r.uf, r.ventas, r.mix===null?"":r.mix])
   };
 
   document.getElementById("noteArea").innerHTML = `<div class="note info">Click en un producto para ver tendencia y con qué otros productos comparte módulo.</div>`;
@@ -703,7 +703,6 @@ function renderProductos(rows) {
     <th class="sortable" data-col="p">Producto</th>
     <th>Presentación</th>
     <th class="sortable" data-col="l">Línea</th>
-    <th class="sortable" data-col="sg">Segmentación</th>
     <th class="sortable" data-col="nMod">#Módulos</th>
     <th class="sortable" data-col="mesesActivos">Meses activo</th>
     <th class="sortable" data-col="periodo">Período Transfer</th>
@@ -717,7 +716,6 @@ function renderProductos(rows) {
       <td>${r.p}</td>
       <td class="muted">${r.pr||""}</td>
       <td><span class="tag">${r.l}</span></td>
-      <td>${r.sg}</td>
       <td>${r.nMod}</td>
       <td>${r.mesesActivos}</td>
       <td>${r.periodo}</td>
