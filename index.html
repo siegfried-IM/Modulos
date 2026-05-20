@@ -834,24 +834,82 @@ function renderResumen(rows) {
   const nProdSinMod = new Set(rows.filter(r => r.m && r.m.indexOf("Sin Modulo") === 0 && r.s).map(r => r.s)).size;
 
   document.getElementById("tbody").innerHTML = `
-    <tr style="background:#f0fbf1"><td><strong>📦 Módulos estratégicos</strong></td><td>${fmt(ufMod)}</td><td><strong>${pct(ufMod)}</strong></td><td>${fmt(vMod)}</td><td>${nProdMod}</td><td class="muted">Combos planificados</td></tr>
-    <tr style="background:#fffce6"><td><strong>📋 Suelto (sin asignación)</strong></td><td>${fmt(ufDash)}</td><td><strong>${pct(ufDash)}</strong></td><td>${fmt(vDash)}</td><td>${nProdDash}</td><td class="muted">Candidatos a módulo</td></tr>
-    <tr style="background:#fff0f0"><td><strong>🏷 Sin Modulo Nova</strong></td><td>${fmt(ufSinMod)}</td><td><strong>${pct(ufSinMod)}</strong></td><td>${fmt(vSinMod)}</td><td>${nProdSinMod}</td><td class="muted">Canal Nova Argentia</td></tr>
+    <tr class="resumen-cat" data-cat="modulo" style="background:#f0fbf1;cursor:pointer"><td><strong>Módulos estratégicos</strong></td><td>${fmt(ufMod)}</td><td><strong>${pct(ufMod)}</strong></td><td>${fmt(vMod)}</td><td>${nProdMod}</td><td class="muted">Combos planificados</td></tr>
+    <tr class="resumen-cat" data-cat="suelto" style="background:#fffce6;cursor:pointer"><td><strong>Suelto (sin asignación)</strong></td><td>${fmt(ufDash)}</td><td><strong>${pct(ufDash)}</strong></td><td>${fmt(vDash)}</td><td>${nProdDash}</td><td class="muted">Candidatos a módulo</td></tr>
+    <tr class="resumen-cat" data-cat="sinmodulo" style="background:#fff0f0;cursor:pointer"><td><strong>Sin Modulo Nova</strong></td><td>${fmt(ufSinMod)}</td><td><strong>${pct(ufSinMod)}</strong></td><td>${fmt(vSinMod)}</td><td>${nProdSinMod}</td><td class="muted">Canal Nova Argentia</td></tr>
     <tr style="background:#f8f9fb;font-weight:600"><td>TOTAL Transfer</td><td>${fmt(ufTotal)}</td><td>100%</td><td>${fmt(vMod+vDash+vSinMod+vOtros)}</td><td>${new Set(rows.filter(r=>r.s).map(r=>r.s)).size}</td><td></td></tr>
-    <tr><td colspan="6" style="background:#95232C;color:white;font-size:13px;text-align:center;padding:10px"><strong>🎯 Top 50 productos SUELTOS</strong> — candidatos a entrar a un módulo</td></tr>
-    <tr style="font-weight:600;background:#f0f2f5"><td>Producto</td><td>UF Transfer (suelto)</td><td>Ventas Totales</td><td>Mix Transfer</td><td>Línea</td><td>SAP</td></tr>
-    ${sueltosArr.slice(0, 50).map(p => {
-      const mix = p.ventas > 0 ? (p.uf/p.ventas*100).toFixed(0)+"%" : "—";
-      return `<tr><td><strong>${p.p}</strong><div class="muted" style="font-size:11px">${p.pr||""}</div></td><td>${fmt(p.uf)}</td><td>${p.ventas>0?fmt(p.ventas):'<span class="muted">—</span>'}</td><td>${mix}</td><td><span class="tag">${p.l}</span></td><td class="muted">${p.s}</td></tr>`;
-    }).join("")}
+    <tr><td colspan="6" style="background:#95232C;color:white;font-size:12px;text-align:center;padding:8px"><strong>Click en una categoría arriba para filtrar el detalle</strong></td></tr>
   `;
 
-  S.lastView = {
-    name: "resumen_transfer",
-    header: ["Producto","SAP","Linea","UF_suelto","Ventas_Totales","Mix_Transfer_pct"],
-    rows: sueltosArr.map(p => [p.p, p.s, p.l, p.uf, p.ventas, p.ventas>0?(p.uf/p.ventas):""])
-  };
-  document.getElementById("detailPanel").classList.remove("show");
+  // Render detalle por categoría
+  function renderDetalleCategoria(cat) {
+    let etiqueta = '', filtered = [];
+    if (cat === "modulo") {
+      etiqueta = "Módulos estratégicos";
+      filtered = rows.filter(r => r.mc !== "SIN_MODULO");
+    } else if (cat === "suelto") {
+      etiqueta = "Suelto (sin asignación)";
+      filtered = rows.filter(r => r.mc === "SIN_MODULO" && r.m === "-");
+    } else if (cat === "sinmodulo") {
+      etiqueta = "Sin Modulo Nova";
+      filtered = rows.filter(r => r.mc === "SIN_MODULO" && r.m && r.m.indexOf("Sin Modulo") === 0);
+    }
+    // Agrupar por SAP
+    const prods = {};
+    filtered.forEach(r => {
+      const k = r.s || ('__noSAP_' + r.pr);
+      if (!prods[k]) prods[k] = { s: r.s, p: r.p, pr: r.pr, l: r.l, modulos: new Set(), uf: 0, ventas: 0 };
+      prods[k].uf += r.uf;
+      if (r.vn) prods[k].ventas += r.vn;
+      if (r.m) prods[k].modulos.add(r.m);
+    });
+    const arr = Object.values(prods).sort((a,b) => b.uf - a.uf);
+
+    document.getElementById("detailPanel").classList.add("show");
+    document.getElementById("detailContent").innerHTML = `
+      <div class="detail-header">
+        <div class="info">
+          <h3>Detalle: ${etiqueta}</h3>
+          <div class="meta">${arr.length} productos · UF total ${fmt(arr.reduce((s,p)=>s+p.uf,0))} · Ventas ${fmt(arr.reduce((s,p)=>s+p.ventas,0))}</div>
+        </div>
+      </div>
+      <div class="scroll-wrap"><table>
+        <thead><tr><th>SAP</th><th>Producto</th><th>Presentación</th><th>Línea</th><th>Módulo(s)</th><th>UF Transfer</th><th>Ventas Totales</th><th>Mix Transfer</th></tr></thead>
+        <tbody>
+          ${arr.map(p => {
+            const mix = p.ventas > 0 ? (p.uf/p.ventas*100).toFixed(0)+"%" : "—";
+            return `<tr><td class="muted">${p.s||"—"}</td><td><strong>${p.p}</strong></td><td class="muted">${p.pr||""}</td><td><span class="tag">${p.l}</span></td><td class="muted" style="font-size:11px">${[...p.modulos].join(", ")}</td><td>${fmt(p.uf)}</td><td>${p.ventas>0?fmt(p.ventas):'<span class="muted">—</span>'}</td><td>${mix}</td></tr>`;
+          }).join("")}
+        </tbody>
+      </table></div>`;
+    // Actualizar lastView para que el export use esta data
+    S.lastView = {
+      name: "resumen_" + cat,
+      header: ["SAP","Producto","Presentacion","Linea","Modulos","UF_Transfer","Ventas_Totales","Mix_Transfer"],
+      rows: arr.map(p => [p.s||"", p.p, p.pr||"", p.l, [...p.modulos].join(", "), p.uf, p.ventas, p.ventas>0?(p.uf/p.ventas):""])
+    };
+  }
+
+  document.querySelectorAll(".resumen-cat").forEach(tr => {
+    tr.addEventListener("click", () => { S.selected = tr.dataset.cat; renderDetalleCategoria(tr.dataset.cat); });
+  });
+
+  // Si ya había una categoría seleccionada, refrescar el detalle
+  if (S.selected && ["modulo","suelto","sinmodulo"].includes(S.selected)) renderDetalleCategoria(S.selected);
+  else document.getElementById("detailPanel").classList.remove("show");
+
+  // Default export para esta vista (cuando no hay categoría seleccionada)
+  if (!S.selected || !["modulo","suelto","sinmodulo"].includes(S.selected)) {
+    S.lastView = {
+      name: "resumen_composicion",
+      header: ["Categoria","UF_Transfer","Pct_del_total","Ventas_Totales","Productos","Observacion"],
+      rows: [
+        ["Módulos estratégicos", ufMod, pct(ufMod), vMod, nProdMod, "Combos planificados"],
+        ["Suelto (sin asignación)", ufDash, pct(ufDash), vDash, nProdDash, "Candidatos a módulo"],
+        ["Sin Modulo Nova", ufSinMod, pct(ufSinMod), vSinMod, nProdSinMod, "Canal Nova Argentia"]
+      ]
+    };
+  }
 }
 
 function render() {
