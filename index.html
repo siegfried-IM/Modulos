@@ -193,141 +193,38 @@ const SAPT = DATA.sapTotals || {};
 const DICC_MOD = DATA.diccModulos || {};
 const DICC_ALIAS = DATA.diccAlias || {};
 const OBJETIVOS = {
- "titulo": "Objetivos Rofina - Julio 2026",
- "objetivos": [
-  {
-   "equipo": "VENTAS",
-   "n": 1,
-   "producto": "TELPRES",
-   "tipo": "CUITS",
-   "target": "1650",
-   "peso": 0.25,
-   "pilar": "DISTRIBUCIÓN"
-  },
-  {
-   "equipo": "VENTAS",
-   "n": 2,
-   "producto": "EMPAX",
-   "tipo": "CUITS",
-   "target": "450",
-   "peso": 0.25,
-   "pilar": "DISTRIBUCIÓN"
-  },
-  {
-   "equipo": "VENTAS",
-   "n": 3,
-   "producto": "TERLOC",
-   "tipo": "UNIDADES",
-   "target": "20000",
-   "peso": 0.25,
-   "pilar": "ACUERDO/VOLUMEN"
-  },
-  {
-   "equipo": "VENTAS",
-   "n": 4,
-   "producto": "DDD",
-   "tipo": "DDD",
-   "target": "0.25",
-   "peso": null,
-   "pilar": "BLINDAR RECETA"
-  },
-  {
-   "equipo": "TRADE",
-   "n": 1,
-   "producto": "TELPRES",
-   "tipo": "RELEVAMIENTO",
-   "target": "80% de la base",
-   "peso": 0.25,
-   "pilar": "DISTRIBUCIÓN"
-  },
-  {
-   "equipo": "TRADE",
-   "n": 6,
-   "producto": "EMPAX",
-   "tipo": "RELEVAMIENTO",
-   "target": "80% de la base",
-   "peso": 0.25,
-   "pilar": "DISTRIBUCIÓN"
-  },
-  {
-   "equipo": "TRADE",
-   "n": 7,
-   "producto": "ACEMUK",
-   "tipo": "EXHIBICIÓN",
-   "target": "355",
-   "peso": 0.25,
-   "pilar": "VISIBILIDAD"
-  },
-  {
-   "equipo": "TRADE",
-   "n": 8,
-   "producto": "TRIP",
-   "tipo": "EXHIBICIÓN",
-   "target": "245",
-   "peso": 0.25,
-   "pilar": "VISIBILIDAD"
-  }
- ],
- "modulosExclusivos": [
-  {
-   "productos": [
-    {
-     "barcode": "3018805",
-     "nombre": "DECADRON iny 2ml x 1 f/a + jeringa SIDUS",
-     "dto": 0.07
-    },
-    {
-     "barcode": "3018801",
-     "nombre": "DECADRON 0,5 mg comp x 30 SIDUS",
-     "dto": 0.07
-    },
-    {
-     "barcode": "3076703",
-     "nombre": "HEXALER CORT comp rec x 10",
-     "dto": 0.07
-    }
-   ]
-  },
-  {
-   "productos": [
-    {
-     "barcode": "3023209",
-     "nombre": "TRIP D3 caps x 3 - SIE",
-     "dto": 0.07
-    },
-    {
-     "barcode": "3036002",
-     "nombre": "ROACCUTAN 20 MG 2 x 30 CAPS    CSG",
-     "dto": 0.07
-    },
-    {
-     "barcode": "3041501",
-     "nombre": "ACNECLIN 100 AP caps x 30",
-     "dto": 0.07
-    }
-   ]
-  },
-  {
-   "productos": [
-    {
-     "barcode": "3006007",
-     "nombre": "TERLOC 5 mg comp x 30 SIE",
-     "dto": 0.07
-    },
-    {
-     "barcode": "3006009",
-     "nombre": "TERLOC 10 mg comp x 30 SIE",
-     "dto": 0.07
-    },
-    {
-     "barcode": "3048403",
-     "nombre": "SYNCROCOR 5 mg comp x 28",
-     "dto": 0.07
-    }
-   ]
-  }
- ]
-};
+  "titulo": "Objetivos Rofina - Julio 2026",
+  "ventas": [
+    { "n": 1, "nombre": "Módulo 1", "tipo": "UNIDADES", "target": 700, "peso": 0.25, "pilar": "ACUERDO/VOLUMEN", "moduloIdx": 0 },
+    { "n": 2, "nombre": "Módulo 2", "tipo": "UNIDADES", "target": 700, "peso": 0.25, "pilar": "ACUERDO/VOLUMEN", "moduloIdx": 1 },
+    { "n": 3, "nombre": "Módulo 3", "tipo": "UNIDADES", "target": 700, "peso": 0.25, "pilar": "ACUERDO/VOLUMEN", "moduloIdx": 2 },
+    { "n": 4, "nombre": "DDD", "tipo": "DDD", "target": null, "peso": 0.25, "pilar": "BLINDAR RECETA", "moduloIdx": null }
+  ],
+  "trade": [
+    { "n": 1, "nombre": "Familia Dauran", "tipo": "RELEVAMIENTO", "target": "80% de la base", "peso": 0.25, "pilar": "DISTRIBUCIÓN" },
+    { "n": 2, "nombre": "Familia Syncrocor", "tipo": "RELEVAMIENTO", "target": "80% de la base", "peso": 0.25, "pilar": "DISTRIBUCIÓN" },
+    { "n": 3, "nombre": "Familia Acemuk", "tipo": "EXHIBICIÓN", "target": null, "peso": 0.20, "pilar": "VISIBILIDAD" },
+    { "n": 4, "nombre": "Suplementos TRIP", "tipo": "EXHIBICIÓN", "target": "60% Farmacias con Descuento", "peso": 0.15, "pilar": "VISIBILIDAD" }
+  ],
+  "modulos": [
+    { "nombre": "Módulo 1", "productos": [
+      { "nombre": "DECADRON iny 2ml x 1 f/a + jeringa", "sap": "3018806", "pfx": "DECADRON", "inc": ["INY"] },
+      { "nombre": "DECADRON 0,5 mg comp x 30", "sap": "3018801", "pfx": "DECADRON", "inc": ["0,5"] },
+      { "nombre": "HEXALER CORT comp rec x 10", "sap": "3076703", "pfx": "HEXALER CORT", "inc": [] }
+    ]},
+    { "nombre": "Módulo 2", "productos": [
+      { "nombre": "TRIP D3 caps x 3", "sap": "3023209", "pfx": "TRIP D3", "inc": [] },
+      { "nombre": "ROACCUTAN 20 mg x 30 caps", "sap": "3036002", "pfx": "ROACCUTAN", "inc": [] },
+      { "nombre": "ACNECLIN 100 AP caps x 30", "sap": "3041501", "pfx": "ACNECLIN", "inc": [] }
+    ]},
+    { "nombre": "Módulo 3", "productos": [
+      { "nombre": "TERLOC 5 mg comp x 30", "sap": "3006007", "pfx": "TERLOC 5", "inc": [] },
+      { "nombre": "TERLOC 10 mg comp x 30", "sap": "3006009", "pfx": "TERLOC 10", "inc": [] },
+      { "nombre": "SYNCROCOR 5 mg comp x 28", "sap": "3048403", "pfx": "SYNCROCOR 5", "inc": ["28"] }
+    ]}
+  ]
+}
+;
 // Mapping SAP → producto (para resolver nombres del Diccionario_Modulos)
 const SAP2PROD = {};
 DATA.rows.forEach(r => { if (r.s && !SAP2PROD[r.s]) SAP2PROD[r.s] = r.p; });
@@ -1051,114 +948,108 @@ function renderResumen(rows) {
 
 // ===== OBJETIVOS ROFINA =====
 function normObj(s){return (s||'').toUpperCase().replace(/[.,()/]/g,' ').replace(/\s+/g,' ').trim();}
-function medirObjetivo(obj, mesObj){
-  const marca = normObj(obj.producto);
-  const matches = DATA.rows.filter(r => r.mes === mesObj && (normObj(r.pr).startsWith(marca) || normObj(r.p).startsWith(marca)));
-  const tgt = parseInt(String(obj.target).replace(/[^0-9]/g,'')) || null;
-  if (obj.tipo === 'UNIDADES') {
-    const real = matches.reduce((s,r)=>s+r.uf,0);
-    return { real, target:tgt, medible:true, unidad:'uds', avance: tgt? real/tgt : null, fuente:'UF Transfer del mes' };
-  }
-  if (obj.tipo === 'CUITS') {
-    const real = matches.reduce((s,r)=>s+(r.qf||0),0);
-    return { real, target:tgt, medible:true, unidad:'CUITs', avance: tgt? real/tgt : null, fuente:'Q farmacias del mes (proxy CUITs)' };
-  }
-  // Relevamiento / Exhibición / DDD → no medible con transfer
-  return { real:null, target:tgt, medible:false, unidad:'', avance:null, fuente:'Actividad de campo — carga manual' };
-}
 function semObjClase(av){ if(av==null||!isFinite(av)) return 'gris'; if(av>=1) return 'verde'; if(av>=0.7) return 'amarillo'; return 'rojo'; }
+// Mide un producto de módulo (UF + Ventas) por SAP o patrón de nombre, en un mes
+function medirProducto(p, mesObj){
+  // 1) Preferir SAP exacto (preciso a la presentación)
+  let matches = p.sap ? DATA.rows.filter(r => r.mes === mesObj && r.s === p.sap) : [];
+  let fuente = 'SAP';
+  // 2) Fallback por nombre solo si el SAP no encontró nada
+  if (matches.length === 0 && p.pfx) {
+    const pfx = normObj(p.pfx), inc = (p.inc||[]).map(normObj);
+    matches = DATA.rows.filter(r => { if (r.mes !== mesObj) return false; const n = normObj(r.pr); return n.startsWith(pfx) && inc.every(k => n.includes(k)); });
+    fuente = 'nombre';
+  }
+  const uf = matches.reduce((s,r)=>s+r.uf,0);
+  const ventas = matches.reduce((s,r)=>s+(r.vn||0),0);
+  return { uf, ventas, n: matches.length, fuente };
+}
+function medirModulo(mod, mesObj){
+  let uf=0, ventas=0;
+  const det = mod.productos.map(p => { const m = medirProducto(p, mesObj); uf+=m.uf; ventas+=m.ventas; return {p, m}; });
+  return { uf, ventas, det };
+}
 
 function renderObjetivos(rows){
   const mesObj = +document.getElementById("fMesHasta").value;
-  const equipos = ['VENTAS','TRADE'];
 
-  // KPIs de la vista
   document.getElementById("kpis").innerHTML = '';
-
   document.getElementById("noteArea").innerHTML =
     `<div class="metodologia">
       <h4>${OBJETIVOS.titulo || 'Objetivos Rofina'} — seguimiento sobre el mes ${mesLabel(mesObj)}</h4>
       <ul>
-        <li><b>UNIDADES</b>: avance automático = suma de UF Transfer del mes de la marca.</li>
-        <li><b>CUITS</b>: avance automático = suma de Q farmacias del mes (proxy de CUITs).</li>
-        <li><b>Relevamiento / Exhibición / DDD</b>: actividad de campo — no sale del transfer, se carga aparte.</li>
+        <li><b>Objetivos de VENTAS (Módulos)</b>: se miden en <b>unidades de Transfer</b> (suma UF del mes de los productos que componen cada módulo).</li>
+        <li><b>DDD</b> y <b>objetivos de TRADE (Relevamiento / Exhibición)</b>: actividad de campo — no sale del transfer, se carga aparte.</li>
         <li>Semáforo: <span class="semaforo verde"></span> ≥100% &nbsp; <span class="semaforo amarillo"></span> 70-99% &nbsp; <span class="semaforo rojo"></span> &lt;70% &nbsp; <span class="semaforo gris"></span> sin dato.</li>
       </ul>
     </div>`;
 
+  // Pre-calcular medición de módulos
+  const medMod = (OBJETIVOS.modulos||[]).map(mod => medirModulo(mod, mesObj));
+
   let html = '';
-  equipos.forEach(eq => {
-    const objs = (OBJETIVOS.objetivos||[]).filter(o => o.equipo === eq);
-    if (!objs.length) return;
-    // Cumplimiento ponderado (solo medibles con avance)
-    let sumW=0, sumWA=0;
-    const filas = objs.map(o => {
-      const m = medirObjetivo(o, mesObj);
-      const peso = o.peso || 0.25;
-      if (m.medible && m.avance!=null) { sumW += peso; sumWA += Math.min(m.avance,1)*peso; }
-      return { o, m, peso };
-    });
-    const cumpl = sumW>0 ? sumWA/sumW : null;
-    html += `<div style="margin-bottom:8px;display:flex;align-items:center;gap:12px">
-      <h3 style="margin:0;color:#95232C;font-size:15px">Equipo ${eq}</h3>
-      ${cumpl!=null ? `<span style="font-size:13px;color:#555">Cumplimiento medible ponderado: <strong style="color:${cumpl>=1?'#1a7a3b':cumpl>=0.7?'#b58900':'#b3261e'}">${(cumpl*100).toFixed(0)}%</strong></span>` : ''}
-    </div>`;
-    html += `<div class="scroll-wrap" style="margin-bottom:20px"><table>
-      <thead><tr><th>N°</th><th>Marca / Módulo</th><th>Tipo objetivo</th><th>Target</th><th>Real (mes)</th><th>% Avance</th><th>Estado</th><th>Peso</th><th>Pilar Rofina</th></tr></thead>
-      <tbody>
-      ${filas.map(({o,m,peso}) => {
-        const cl = semObjClase(m.avance);
-        const realTxt = m.medible ? (fmt(m.real)+' '+m.unidad) : '<span class="muted">carga manual</span>';
-        const avTxt = m.avance!=null ? (m.avance*100).toFixed(0)+'%' : '<span class="muted">—</span>';
-        const tgtTxt = m.target!=null ? fmt(m.target)+' '+(m.medible?m.unidad:'') : (o.target||'—');
-        return `<tr class="${cl==='gris'?'':cl}">
-          <td>${o.n}</td>
-          <td><strong>${o.producto}</strong></td>
-          <td>${o.tipo}</td>
-          <td>${tgtTxt}</td>
-          <td>${realTxt}<div class="muted" style="font-size:10px">${m.fuente}</div></td>
-          <td class="${cl==='verde'?'pos':cl==='rojo'?'neg':''}">${avTxt}</td>
-          <td><span class="semaforo ${cl}"></span></td>
-          <td>${(peso*100).toFixed(0)}%</td>
-          <td class="muted">${o.pilar||''}</td>
-        </tr>`;
-      }).join('')}
-      </tbody></table></div>`;
+
+  // ---- VENTAS ----
+  let sumW=0,sumWA=0;
+  const filasV = (OBJETIVOS.ventas||[]).map(o => {
+    let real=null, avance=null, medible=false;
+    if (o.tipo==='UNIDADES' && o.moduloIdx!=null && medMod[o.moduloIdx]) {
+      real = medMod[o.moduloIdx].uf; medible=true;
+      if (o.target) avance = real/o.target;
+    }
+    const peso=o.peso||0.25;
+    if (medible && avance!=null){ sumW+=peso; sumWA+=Math.min(avance,1)*peso; }
+    return {o,real,avance,medible,peso};
   });
+  const cumplV = sumW>0? sumWA/sumW : null;
+  html += `<div style="margin-bottom:8px;display:flex;align-items:center;gap:12px">
+    <h3 style="margin:0;color:#95232C;font-size:15px">Equipo VENTAS</h3>
+    ${cumplV!=null?`<span style="font-size:13px;color:#555">Cumplimiento medible ponderado: <strong style="color:${cumplV>=1?'#1a7a3b':cumplV>=0.7?'#b58900':'#b3261e'}">${(cumplV*100).toFixed(0)}%</strong></span>`:''}</div>`;
+  html += `<div class="scroll-wrap" style="margin-bottom:20px"><table>
+    <thead><tr><th>N°</th><th>Módulo</th><th>Tipo</th><th>Target</th><th>Real (uds mes)</th><th>% Avance</th><th>Estado</th><th>Peso</th><th>Pilar Rofina</th></tr></thead><tbody>
+    ${filasV.map(({o,real,avance,medible,peso})=>{
+      const cl=semObjClase(avance);
+      const realTxt = medible? fmt(real)+' uds' : '<span class="muted">carga manual</span>';
+      const avTxt = avance!=null? (avance*100).toFixed(0)+'%' : '<span class="muted">—</span>';
+      const tgtTxt = o.target!=null? fmt(o.target)+' uds' : '—';
+      return `<tr class="${cl==='gris'?'':cl}"><td>${o.n}</td><td><strong>${o.nombre}</strong></td><td>${o.tipo}</td><td>${tgtTxt}</td><td>${realTxt}</td><td class="${cl==='verde'?'pos':cl==='rojo'?'neg':''}">${avTxt}</td><td><span class="semaforo ${cl}"></span></td><td>${(peso*100).toFixed(0)}%</td><td class="muted">${o.pilar||''}</td></tr>`;
+    }).join('')}
+    </tbody></table></div>`;
 
-  // Composición de módulos exclusivos (referencia)
-  if (OBJETIVOS.modulosExclusivos && OBJETIVOS.modulosExclusivos.length) {
-    html += `<h3 style="margin:16px 0 8px;color:#95232C;font-size:15px">Módulos exclusivos Rofina — composición</h3>`;
-    html += `<div class="scroll-wrap"><table><thead><tr><th>Módulo</th><th>Productos</th><th>Descuento</th></tr></thead><tbody>`;
-    OBJETIVOS.modulosExclusivos.forEach((mod,i) => {
-      const prods = mod.productos.map(p=>p.nombre).join('<br>');
-      const dto = mod.productos[0] && mod.productos[0].dto!=null ? (mod.productos[0].dto*100).toFixed(0)+'%' : '—';
-      html += `<tr><td><strong>Módulo ${i+1}</strong></td><td style="font-size:11px;line-height:1.4">${prods}</td><td>${dto}</td></tr>`;
+  // ---- TRADE ----
+  html += `<div style="margin-bottom:8px"><h3 style="margin:0;color:#95232C;font-size:15px">Equipo TRADE <span style="font-size:12px;color:#888;font-weight:400">— actividad de campo, avance a cargar</span></h3></div>`;
+  html += `<div class="scroll-wrap" style="margin-bottom:20px"><table>
+    <thead><tr><th>N°</th><th>Familia / Producto</th><th>Tipo</th><th>Target</th><th>Avance</th><th>Peso</th><th>Pilar Rofina</th></tr></thead><tbody>
+    ${(OBJETIVOS.trade||[]).map(o=>`<tr><td>${o.n}</td><td><strong>${o.nombre}</strong></td><td>${o.tipo}</td><td>${o.target||'—'}</td><td><span class="muted">carga manual</span></td><td>${((o.peso||0)*100).toFixed(0)}%</td><td class="muted">${o.pilar||''}</td></tr>`).join('')}
+    </tbody></table></div>`;
+
+  // ---- DETALLE: cuánto se vendió de cada producto de los módulos ----
+  html += `<h3 style="margin:16px 0 8px;color:#95232C;font-size:15px">Detalle por producto — cuánto se vendió (mes ${mesLabel(mesObj)})</h3>`;
+  html += `<div class="scroll-wrap"><table>
+    <thead><tr><th>Módulo</th><th>Producto</th><th>UF Transfer</th><th>Ventas Totales</th><th>Prods match</th></tr></thead><tbody>`;
+  (OBJETIVOS.modulos||[]).forEach((mod,i)=>{
+    const mm = medMod[i];
+    mod.productos.forEach((p,j)=>{
+      const d = mm.det[j].m;
+      html += `<tr><td>${j===0?'<strong>'+mod.nombre+'</strong>':''}</td><td>${p.nombre}</td><td>${fmt(d.uf)}</td><td>${d.ventas>0?fmt(d.ventas):'<span class="muted">—</span>'}</td><td class="muted">${d.n}</td></tr>`;
     });
-    html += `</tbody></table></div>`;
-  }
+    html += `<tr style="background:#f8f9fb;font-weight:600"><td></td><td>Total ${mod.nombre}</td><td>${fmt(mm.uf)}</td><td>${mm.ventas>0?fmt(mm.ventas):'—'}</td><td></td></tr>`;
+  });
+  html += `</tbody></table></div>`;
 
-  document.getElementById("thead").innerHTML = '';
-  document.getElementById("tbody").innerHTML = '';
-  // Reusar el panel: pongo todo en noteArea + un contenedor
-  document.getElementById("mainTable").style.display = 'none';
-  let cont = document.getElementById("objContainer");
-  if (!cont) {
-    cont = document.createElement('div');
-    cont.id = 'objContainer';
-    document.querySelector('.panel').appendChild(cont);
-  }
-  cont.style.display = 'block';
-  cont.innerHTML = html;
+  document.getElementById("thead").innerHTML='';
+  document.getElementById("tbody").innerHTML='';
+  document.getElementById("mainTable").style.display='none';
+  let cont=document.getElementById("objContainer");
+  if(!cont){cont=document.createElement('div');cont.id='objContainer';document.querySelector('.panel').appendChild(cont);}
+  cont.style.display='block';
+  cont.innerHTML=html;
   document.getElementById("detailPanel").classList.remove("show");
 
-  // Export
-  const expRows = [];
-  equipos.forEach(eq => (OBJETIVOS.objetivos||[]).filter(o=>o.equipo===eq).forEach(o=>{
-    const m = medirObjetivo(o, mesObj);
-    expRows.push([eq, o.n, o.producto, o.tipo, o.target, m.medible?m.real:'', m.avance!=null?(m.avance*100).toFixed(0)+'%':'', (o.peso||0.25), o.pilar]);
-  }));
-  S.lastView = { name:'objetivos_'+mesObj, header:['Equipo','N','Marca','Tipo','Target','Real','Avance','Peso','Pilar'], rows: expRows };
+  // Export: detalle de productos
+  const expRows=[];
+  (OBJETIVOS.modulos||[]).forEach((mod,i)=>{ mod.productos.forEach((p,j)=>{ const d=medMod[i].det[j].m; expRows.push([mod.nombre,p.nombre,d.uf,d.ventas]); }); });
+  S.lastView={name:'objetivos_'+mesObj,header:['Modulo','Producto','UF_Transfer','Ventas_Totales'],rows:expRows};
 }
 
 function render() {
