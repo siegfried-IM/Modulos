@@ -195,9 +195,9 @@ const DICC_ALIAS = DATA.diccAlias || {};
 const OBJETIVOS = {
   "titulo": "Objetivos Rofina - Julio 2026",
   "ventas": [
-    { "n": 1, "nombre": "Módulo 1", "tipo": "UNIDADES", "target": 700, "peso": 0.25, "pilar": "ACUERDO/VOLUMEN", "moduloIdx": 0 },
-    { "n": 2, "nombre": "Módulo 2", "tipo": "UNIDADES", "target": 700, "peso": 0.25, "pilar": "ACUERDO/VOLUMEN", "moduloIdx": 1 },
-    { "n": 3, "nombre": "Módulo 3", "tipo": "UNIDADES", "target": 700, "peso": 0.25, "pilar": "ACUERDO/VOLUMEN", "moduloIdx": 2 },
+    { "n": 1, "nombre": "Módulo 1", "tipo": "MODULOS", "target": 700, "peso": 0.25, "pilar": "ACUERDO/VOLUMEN", "moduloIdx": 0 },
+    { "n": 2, "nombre": "Módulo 2", "tipo": "MODULOS", "target": 700, "peso": 0.25, "pilar": "ACUERDO/VOLUMEN", "moduloIdx": 1 },
+    { "n": 3, "nombre": "Módulo 3", "tipo": "MODULOS", "target": 700, "peso": 0.25, "pilar": "ACUERDO/VOLUMEN", "moduloIdx": 2 },
     { "n": 4, "nombre": "DDD", "tipo": "DDD", "target": null, "peso": 0.25, "pilar": "BLINDAR RECETA", "moduloIdx": null }
   ],
   "trade": [
@@ -208,19 +208,19 @@ const OBJETIVOS = {
   ],
   "modulos": [
     { "nombre": "Módulo 1", "productos": [
-      { "nombre": "DECADRON iny 2ml x 1 f/a + jeringa", "sap": "3018806", "pfx": "DECADRON", "inc": ["INY"] },
-      { "nombre": "DECADRON 0,5 mg comp x 30", "sap": "3018801", "pfx": "DECADRON", "inc": ["0,5"] },
-      { "nombre": "HEXALER CORT comp rec x 10", "sap": "3076703", "pfx": "HEXALER CORT", "inc": [] }
+      { "nombre": "DECADRON iny 2ml x 1 f/a + jeringa", "sap": "3018806", "pfx": "DECADRON", "inc": ["INY"], "cant": 4 },
+      { "nombre": "DECADRON 0,5 mg comp x 30", "sap": "3018801", "pfx": "DECADRON", "inc": ["0,5"], "cant": 2 },
+      { "nombre": "HEXALER CORT comp rec x 10", "sap": "3076703", "pfx": "HEXALER CORT", "inc": [], "cant": 5 }
     ]},
     { "nombre": "Módulo 2", "productos": [
-      { "nombre": "TRIP D3 caps x 3", "sap": "3023209", "pfx": "TRIP D3", "inc": [] },
-      { "nombre": "ROACCUTAN 20 mg x 30 caps", "sap": "3036002", "pfx": "ROACCUTAN", "inc": [] },
-      { "nombre": "ACNECLIN 100 AP caps x 30", "sap": "3041501", "pfx": "ACNECLIN", "inc": [] }
+      { "nombre": "TRIP D3 caps x 3", "sap": "3023209", "pfx": "TRIP D3", "inc": [], "cant": 2 },
+      { "nombre": "ROACCUTAN 20 mg x 30 caps", "sap": "3036002", "pfx": "ROACCUTAN", "inc": [], "cant": 2 },
+      { "nombre": "ACNECLIN 100 AP caps x 30", "sap": "3041501", "pfx": "ACNECLIN", "inc": [], "cant": 2 }
     ]},
     { "nombre": "Módulo 3", "productos": [
-      { "nombre": "TERLOC 5 mg comp x 30", "sap": "3006007", "pfx": "TERLOC 5", "inc": [] },
-      { "nombre": "TERLOC 10 mg comp x 30", "sap": "3006009", "pfx": "TERLOC 10", "inc": [] },
-      { "nombre": "SYNCROCOR 5 mg comp x 28", "sap": "3048403", "pfx": "SYNCROCOR 5", "inc": ["28"] }
+      { "nombre": "TERLOC 5 mg comp x 30", "sap": "3006007", "pfx": "TERLOC 5", "inc": [], "cant": 2 },
+      { "nombre": "TERLOC 10 mg comp x 30", "sap": "3006009", "pfx": "TERLOC 10", "inc": [], "cant": 2 },
+      { "nombre": "SYNCROCOR 5 mg comp x 28", "sap": "3048403", "pfx": "SYNCROCOR 5", "inc": ["28"], "cant": 1 }
     ]}
   ]
 }
@@ -966,8 +966,19 @@ function medirProducto(p, mesObj){
 }
 function medirModulo(mod, mesObj){
   let uf=0, ventas=0;
-  const det = mod.productos.map(p => { const m = medirProducto(p, mesObj); uf+=m.uf; ventas+=m.ventas; return {p, m}; });
-  return { uf, ventas, det };
+  const det = mod.productos.map(p => {
+    const m = medirProducto(p, mesObj);
+    uf += m.uf; ventas += m.ventas;
+    const cant = p.cant || 1;
+    m.cant = cant;
+    m.modulosEquiv = cant>0 ? Math.floor(m.uf / cant) : 0; // módulos que alcanza este producto
+    return {p, m};
+  });
+  // Módulos cerrados completos = limitado por el producto que menos alcanza
+  const modulosCompletos = det.length ? Math.min(...det.map(d => d.m.modulosEquiv)) : 0;
+  const limitanteIdx = det.reduce((mi, d, i, arr) => d.m.modulosEquiv < arr[mi].m.modulosEquiv ? i : mi, 0);
+  const unidadesPorModulo = mod.productos.reduce((s,p)=>s+(p.cant||1),0);
+  return { uf, ventas, det, modulosCompletos, limitanteIdx, unidadesPorModulo };
 }
 
 function renderObjetivos(rows){
@@ -978,7 +989,7 @@ function renderObjetivos(rows){
     `<div class="metodologia">
       <h4>${OBJETIVOS.titulo || 'Objetivos Rofina'} — seguimiento sobre el mes ${mesLabel(mesObj)}</h4>
       <ul>
-        <li><b>Objetivos de VENTAS (Módulos)</b>: se miden en <b>unidades de Transfer</b> (suma UF del mes de los productos que componen cada módulo).</li>
+        <li><b>Objetivos de VENTAS (Módulos)</b>: cada módulo es un <b>combo cerrado</b> con cantidades fijas por producto (ver detalle abajo). Los <b>módulos vendidos</b> = combos completos armables = mínimo de (unidades facturadas ÷ cantidad por módulo) entre sus productos. El producto que menos alcanza es el <b>limitante</b>.</li>
         <li><b>DDD</b> y <b>objetivos de TRADE (Relevamiento / Exhibición)</b>: actividad de campo — no sale del transfer, se carga aparte.</li>
         <li>Semáforo: <span class="semaforo verde"></span> ≥100% &nbsp; <span class="semaforo amarillo"></span> 70-99% &nbsp; <span class="semaforo rojo"></span> &lt;70% &nbsp; <span class="semaforo gris"></span> sin dato.</li>
       </ul>
@@ -992,27 +1003,30 @@ function renderObjetivos(rows){
   // ---- VENTAS ----
   let sumW=0,sumWA=0;
   const filasV = (OBJETIVOS.ventas||[]).map(o => {
-    let real=null, avance=null, medible=false;
-    if (o.tipo==='UNIDADES' && o.moduloIdx!=null && medMod[o.moduloIdx]) {
-      real = medMod[o.moduloIdx].uf; medible=true;
+    let real=null, avance=null, medible=false, extra='';
+    if (o.tipo==='MODULOS' && o.moduloIdx!=null && medMod[o.moduloIdx]) {
+      const mm = medMod[o.moduloIdx];
+      real = mm.modulosCompletos; medible=true;
+      const lim = mm.det[mm.limitanteIdx];
+      extra = 'limita: '+(lim.p.nombre.split(' ').slice(0,2).join(' '))+' ('+fmt(lim.m.uf)+' uds ÷ '+lim.m.cant+')';
       if (o.target) avance = real/o.target;
     }
     const peso=o.peso||0.25;
     if (medible && avance!=null){ sumW+=peso; sumWA+=Math.min(avance,1)*peso; }
-    return {o,real,avance,medible,peso};
+    return {o,real,avance,medible,peso,extra};
   });
   const cumplV = sumW>0? sumWA/sumW : null;
   html += `<div style="margin-bottom:8px;display:flex;align-items:center;gap:12px">
     <h3 style="margin:0;color:#95232C;font-size:15px">Equipo VENTAS</h3>
     ${cumplV!=null?`<span style="font-size:13px;color:#555">Cumplimiento medible ponderado: <strong style="color:${cumplV>=1?'#1a7a3b':cumplV>=0.7?'#b58900':'#b3261e'}">${(cumplV*100).toFixed(0)}%</strong></span>`:''}</div>`;
   html += `<div class="scroll-wrap" style="margin-bottom:20px"><table>
-    <thead><tr><th>N°</th><th>Módulo</th><th>Tipo</th><th>Target</th><th>Real (uds mes)</th><th>% Avance</th><th>Estado</th><th>Peso</th><th>Pilar Rofina</th></tr></thead><tbody>
-    ${filasV.map(({o,real,avance,medible,peso})=>{
+    <thead><tr><th>N°</th><th>Módulo</th><th>Tipo</th><th>Target</th><th>Módulos vendidos</th><th>% Avance</th><th>Estado</th><th>Peso</th><th>Pilar Rofina</th></tr></thead><tbody>
+    ${filasV.map(({o,real,avance,medible,peso,extra})=>{
       const cl=semObjClase(avance);
-      const realTxt = medible? fmt(real)+' uds' : '<span class="muted">carga manual</span>';
+      const realTxt = medible? '<strong>'+fmt(real)+'</strong> módulos<div class="muted" style="font-size:10px">'+extra+'</div>' : '<span class="muted">carga manual</span>';
       const avTxt = avance!=null? (avance*100).toFixed(0)+'%' : '<span class="muted">—</span>';
-      const tgtTxt = o.target!=null? fmt(o.target)+' uds' : '—';
-      return `<tr class="${cl==='gris'?'':cl}"><td>${o.n}</td><td><strong>${o.nombre}</strong></td><td>${o.tipo}</td><td>${tgtTxt}</td><td>${realTxt}</td><td class="${cl==='verde'?'pos':cl==='rojo'?'neg':''}">${avTxt}</td><td><span class="semaforo ${cl}"></span></td><td>${(peso*100).toFixed(0)}%</td><td class="muted">${o.pilar||''}</td></tr>`;
+      const tgtTxt = o.target!=null? fmt(o.target)+' módulos' : '—';
+      return `<tr class="${cl==='gris'?'':cl}"><td>${o.n}</td><td><strong>${o.nombre}</strong></td><td>${o.tipo==='MODULOS'?'MÓDULOS':o.tipo}</td><td>${tgtTxt}</td><td>${realTxt}</td><td class="${cl==='verde'?'pos':cl==='rojo'?'neg':''}">${avTxt}</td><td><span class="semaforo ${cl}"></span></td><td>${(peso*100).toFixed(0)}%</td><td class="muted">${o.pilar||''}</td></tr>`;
     }).join('')}
     </tbody></table></div>`;
 
@@ -1023,17 +1037,18 @@ function renderObjetivos(rows){
     ${(OBJETIVOS.trade||[]).map(o=>`<tr><td>${o.n}</td><td><strong>${o.nombre}</strong></td><td>${o.tipo}</td><td>${o.target||'—'}</td><td><span class="muted">carga manual</span></td><td>${((o.peso||0)*100).toFixed(0)}%</td><td class="muted">${o.pilar||''}</td></tr>`).join('')}
     </tbody></table></div>`;
 
-  // ---- DETALLE: cuánto se vendió de cada producto de los módulos ----
-  html += `<h3 style="margin:16px 0 8px;color:#95232C;font-size:15px">Detalle por producto — cuánto se vendió (mes ${mesLabel(mesObj)})</h3>`;
+  // ---- DETALLE: composición del módulo + cuánto se vendió de cada producto ----
+  html += `<h3 style="margin:16px 0 8px;color:#95232C;font-size:15px">Detalle por producto — composición del combo y ventas (mes ${mesLabel(mesObj)})</h3>`;
   html += `<div class="scroll-wrap"><table>
-    <thead><tr><th>Módulo</th><th>Producto</th><th>UF Transfer</th><th>Ventas Totales</th><th>Prods match</th></tr></thead><tbody>`;
+    <thead><tr><th>Módulo</th><th>Producto</th><th>Cant. x módulo</th><th>UF Transfer</th><th>Módulos que alcanza (UF÷cant)</th><th>Ventas Totales</th></tr></thead><tbody>`;
   (OBJETIVOS.modulos||[]).forEach((mod,i)=>{
     const mm = medMod[i];
     mod.productos.forEach((p,j)=>{
       const d = mm.det[j].m;
-      html += `<tr><td>${j===0?'<strong>'+mod.nombre+'</strong>':''}</td><td>${p.nombre}</td><td>${fmt(d.uf)}</td><td>${d.ventas>0?fmt(d.ventas):'<span class="muted">—</span>'}</td><td class="muted">${d.n}</td></tr>`;
+      const esLim = j===mm.limitanteIdx;
+      html += `<tr class="${esLim?'rojo':''}"><td>${j===0?'<strong>'+mod.nombre+'</strong>':''}</td><td>${p.nombre}${esLim?' <span class="muted" style="font-size:10px">(limitante)</span>':''}</td><td style="text-align:center">${d.cant}</td><td>${fmt(d.uf)}</td><td>${fmt(d.modulosEquiv)}</td><td>${d.ventas>0?fmt(d.ventas):'<span class="muted">—</span>'}</td></tr>`;
     });
-    html += `<tr style="background:#f8f9fb;font-weight:600"><td></td><td>Total ${mod.nombre}</td><td>${fmt(mm.uf)}</td><td>${mm.ventas>0?fmt(mm.ventas):'—'}</td><td></td></tr>`;
+    html += `<tr style="background:#f8f9fb;font-weight:600"><td></td><td>${mod.nombre}: ${mm.unidadesPorModulo} uds/módulo</td><td></td><td>${fmt(mm.uf)} uds</td><td><strong>${fmt(mm.modulosCompletos)} módulos completos</strong></td><td>${mm.ventas>0?fmt(mm.ventas):'—'}</td></tr>`;
   });
   html += `</tbody></table></div>`;
 
@@ -1046,10 +1061,10 @@ function renderObjetivos(rows){
   cont.innerHTML=html;
   document.getElementById("detailPanel").classList.remove("show");
 
-  // Export: detalle de productos
+  // Export: detalle de productos con composición
   const expRows=[];
-  (OBJETIVOS.modulos||[]).forEach((mod,i)=>{ mod.productos.forEach((p,j)=>{ const d=medMod[i].det[j].m; expRows.push([mod.nombre,p.nombre,d.uf,d.ventas]); }); });
-  S.lastView={name:'objetivos_'+mesObj,header:['Modulo','Producto','UF_Transfer','Ventas_Totales'],rows:expRows};
+  (OBJETIVOS.modulos||[]).forEach((mod,i)=>{ const mm=medMod[i]; mod.productos.forEach((p,j)=>{ const d=mm.det[j].m; expRows.push([mod.nombre,p.nombre,d.cant,d.uf,d.modulosEquiv,d.ventas]); }); expRows.push([mod.nombre+' TOTAL','',mm.unidadesPorModulo,mm.uf,mm.modulosCompletos,mm.ventas]); });
+  S.lastView={name:'objetivos_'+mesObj,header:['Modulo','Producto','Cant_x_modulo','UF_Transfer','Modulos_que_alcanza','Ventas_Totales'],rows:expRows};
 }
 
 function render() {
